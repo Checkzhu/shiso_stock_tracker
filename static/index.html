@@ -22,230 +22,393 @@
   --font: -apple-system, 'Microsoft YaHei', sans-serif;
   --font-mono: 'JetBrainsMono', 'Consolas', monospace;
 }
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg4: #e2e8f0;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --rule: #e2e8f0;
+  --accent: #0d9488;
+  --accent2: #ea580c;
+  --accent3: #3b82f6;
+  --red: #dc2626;
+  --green: #16a34a;
+  --yellow: #ca8a04;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font); background: var(--bg); color: var(--ink); line-height: 1.6; min-height: 100vh; }
+body { font-family: var(--font); background: var(--bg); color: var(--ink); line-height: 1.6; min-height: 100vh; transition: background 0.3s, color 0.3s; }
 
-/* ── Layout ── */
 .app { display: flex; min-height: 100vh; }
-.sidebar { width: 240px; background: var(--bg2); border-right: 1px solid var(--rule); padding: 1.5rem 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
-.main { margin-left: 240px; flex: 1; padding: 2rem; min-height: 100vh; }
+.sidebar { width: 260px; background: var(--bg2); border-right: 1px solid var(--rule); padding: 1.25rem 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: width 0.3s; }
+.sidebar.compact { width: 64px; }
+.main { margin-left: 260px; flex: 1; padding: 2rem; min-height: 100vh; transition: margin-left 0.3s; }
+.sidebar.compact ~ .main { margin-left: 64px; }
 
-/* ── Sidebar ── */
-.logo { padding: 0 1.25rem 1.5rem; border-bottom: 1px solid var(--rule); margin-bottom: 1rem; }
-.logo h1 { font-size: 1.1rem; color: var(--accent); letter-spacing: -0.02em; }
-.logo span { font-size: 0.75rem; color: var(--muted); display: block; margin-top: 0.25rem; }
-.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.25rem; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 0.9rem; border-left: 3px solid transparent; }
+.sidebar-header { padding: 0 1.25rem 1.25rem; border-bottom: 1px solid var(--rule); margin-bottom: 1rem; }
+.sidebar.compact .sidebar-header { padding: 0.5rem 0.75rem; text-align: center; }
+.logo h1 { font-size: 1.05rem; color: var(--accent); letter-spacing: -0.02em; font-weight: 700; }
+.sidebar.compact .logo h1 { font-size: 1.5rem; }
+.logo span { font-size: 0.7rem; color: var(--muted); display: block; margin-top: 0.15rem; }
+.sidebar.compact .logo span { display: none; }
+
+.nav-section { padding: 0.5rem 0; }
+.nav-section-title { padding: 0.4rem 1.25rem; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar.compact .nav-section-title { display: none; }
+
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 0.86rem; border-left: 3px solid transparent; }
+.sidebar.compact .nav-item { padding: 0.65rem 0.75rem; justify-content: center; }
 .nav-item:hover { background: var(--bg3); color: var(--ink); }
 .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,212,170,0.08); }
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item .nav-text { flex: 1; }
+.sidebar.compact .nav-text { display: none; }
 
-/* ── Page Header ── */
-.page-header { margin-bottom: 2rem; }
-.page-header h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
-.page-header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
+.stock-nav-items { max-height: 200px; overflow-y: auto; }
+.stock-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.sidebar.compact .stock-nav-item { padding: 0.5rem 0.75rem; justify-content: center; }
+.stock-nav-item:hover { background: var(--bg3); color: var(--ink); }
+.stock-nav-item.active { color: var(--accent); }
+.stock-nav-item .stock-code { font-family: var(--font-mono); font-size: 0.75rem; }
+.stock-nav-item .stock-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar.compact .stock-name, .sidebar.compact .stock-code { display: none; }
 
-/* ── Stats Grid ── */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-.stat-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 10px; padding: 1.25rem; }
-.stat-card .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-card .stat-value { font-size: 1.8rem; font-weight: 700; font-family: var(--font-mono); margin-top: 0.25rem; }
+.theme-toggle { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; display: flex; justify-content: center; }
+.theme-btn { padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: all 0.2s; display: flex; align-items: center; gap: 0.3rem; }
+.theme-btn:hover { background: var(--bg4); color: var(--ink); }
+.sidebar.compact .theme-toggle { left: 0.5rem; right: 0.5rem; }
+.sidebar.compact .theme-btn span { display: none; }
+
+.page-header { margin-bottom: 1.75rem; }
+.page-header h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.page-header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+.stat-card.accent2::before { background: var(--accent2); }
+.stat-card.accent3::before { background: var(--accent3); }
+.stat-card.blue::before { background: var(--accent3); }
+.stat-card .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .stat-value { font-size: 1.7rem; font-weight: 700; font-family: var(--font-mono); margin-top: 0.3rem; }
 .stat-card .stat-value.accent { color: var(--accent); }
 .stat-card .stat-value.blue { color: var(--accent3); }
 .stat-card .stat-value.orange { color: var(--accent2); }
 
-/* ── Stock Table ── */
-.card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+.card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
 .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
-.card-header h3 { font-size: 1rem; font-weight: 600; }
+.card-header h3 { font-size: 0.95rem; font-weight: 600; }
+
 table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--rule); background: var(--bg3); }
-td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--rule); font-size: 0.88rem; vertical-align: middle; }
+th { text-align: left; padding: 0.7rem 1rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--rule); background: var(--bg3); }
+td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--rule); font-size: 0.85rem; vertical-align: middle; }
 tr:hover td { background: rgba(0,212,170,0.03); }
-.stock-code { font-family: var(--font-mono); font-weight: 600; color: var(--accent3); }
-.price { font-family: var(--font-mono); font-weight: 600; font-size: 0.95rem; }
+.stock-code { font-family: var(--font-mono); font-weight: 600; color: var(--accent3); font-size: 0.8rem; }
+.price { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
 .change-up { color: var(--red); }
 .change-down { color: var(--green); }
 .change-flat { color: var(--muted); }
-.sector-tag { font-size: 0.75rem; color: var(--muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ── Buttons ── */
-.btn { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
+.btn { padding: 0.45rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn:hover { background: var(--bg4); border-color: var(--muted); }
 .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
 .btn-primary:hover { background: #00b894; }
 .btn-danger { background: transparent; color: var(--red); border-color: var(--red); }
 .btn-danger:hover { background: rgba(239,68,68,0.1); }
-.btn-sm { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 
-/* ── Upload Area ── */
-.upload-area { border: 2px dashed var(--rule); border-radius: 10px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
-.upload-area:hover { border-color: var(--accent); background: rgba(0,212,170,0.03); }
-.upload-area.dragover { border-color: var(--accent); background: rgba(0,212,170,0.06); }
-.upload-area p { color: var(--muted); font-size: 0.9rem; }
-.upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-
-/* ── Report List ── */
-.report-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.2s; }
-.report-item:last-child { border-bottom: none; }
-.report-item:hover { background: var(--bg3); }
-.report-info h4 { font-size: 0.92rem; font-weight: 600; }
-.report-info span { font-size: 0.78rem; color: var(--muted); }
-.report-meta { text-align: right; font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
-
-/* ── Report Viewer ── */
-.report-viewer { background: var(--bg); border: 1px solid var(--rule); border-radius: 10px; max-height: 70vh; overflow-y: auto; padding: 0; }
-.report-viewer iframe { width: 100%; border: none; min-height: 60vh; }
-.report-viewer .html-content { padding: 2rem; }
-
-/* ── Empty State ── */
-.empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-.empty .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-
-/* ── Loading ── */
-.loading { text-align: center; padding: 2rem; color: var(--muted); }
-.spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--rule); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
+.loading { text-align: center; padding: 3rem; color: var(--muted); }
+.spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--rule); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Toast ── */
-.toast { position: fixed; top: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--accent); color: var(--ink); padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 9999; transform: translateX(120%); transition: transform 0.3s; max-width: 400px; }
+.empty { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+.empty .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+.toast { position: fixed; top: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--accent); color: var(--ink); padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.85rem; z-index: 9999; transform: translateX(120%); transition: transform 0.3s; max-width: 400px; }
 .toast.show { transform: translateX(0); }
 .toast.error { border-color: var(--red); }
 
-/* ── Page hidden ── */
-.page { display: none; }
+.page { display: none; animation: fadeIn 0.3s ease; }
 .page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ── Responsive ── */
+.stock-detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+.stock-title-section h1 { font-size: 1.8rem; font-weight: 700; color: var(--ink); }
+.stock-title-section .stock-meta { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+.stock-title-section .stock-meta span { font-family: var(--font-mono); }
+
+.quote-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.quote-main { display: flex; align-items: flex-end; gap: 2rem; }
+.quote-price { font-family: var(--font-mono); font-size: 3rem; font-weight: 700; }
+.quote-price.up { color: var(--red); }
+.quote-price.down { color: var(--green); }
+.quote-price.flat { color: var(--ink); }
+.quote-change { font-family: var(--font-mono); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem; }
+.quote-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+.quote-info-item { text-align: center; }
+.quote-info-item .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.quote-info-item .value { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; margin-top: 0.25rem; }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.metric-box { background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; padding: 0.8rem; text-align: center; }
+.metric-box .value { font-size: 1.2rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent); }
+.metric-box .value.red { color: var(--red); }
+.metric-box .value.green { color: var(--green); }
+.metric-box .value.blue { color: var(--accent3); }
+.metric-box .label { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+
+.trade-box { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.trade-item { background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem; }
+.trade-item.buy { border-top: 3px solid var(--green); }
+.trade-item.sell { border-top: 3px solid var(--red); }
+.trade-item .trade-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+.trade-item.buy .trade-label { color: var(--green); }
+.trade-item.sell .trade-label { color: var(--red); }
+.trade-item .trade-detail { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+.trade-item .trade-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+
+.chain-flow { display: flex; align-items: center; gap: 0.25rem; padding: 1rem 0; overflow-x: auto; font-size: 0.75rem; font-family: var(--font-mono); }
+.chain-node { background: var(--bg3); border: 1px solid var(--rule); padding: 0.4rem 0.6rem; border-radius: 4px; white-space: nowrap; color: var(--ink); }
+.chain-node.highlight { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+.chain-arrow { color: var(--muted); font-size: 0.9rem; }
+
+.risk-list { list-style: none; padding: 0; margin: 1rem 0; }
+.risk-list li { padding: 0.7rem 0.8rem 0.7rem 2rem; border-bottom: 1px solid var(--rule); font-size: 0.85rem; position: relative; }
+.risk-list li::before { content: '!'; position: absolute; left: 0.5rem; top: 0.7rem; width: 1.1rem; height: 1.1rem; background: var(--red); color: var(--bg); font-size: 0.65rem; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.risk-list li.medium::before { background: var(--yellow); }
+
+.score-bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
+.score-bar .bar-bg { flex: 1; height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.score-bar .bar-fill { height: 100%; border-radius: 5px; transition: width 0.5s; }
+.score-bar .bar-fill.high { background: var(--green); }
+.score-bar .bar-fill.mid { background: var(--yellow); }
+.score-bar .bar-fill.low { background: var(--red); }
+.score-bar .score-val { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; min-width: 3rem; text-align: right; }
+
+.analysis-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
+.analysis-section:last-child { border-bottom: none; }
+.analysis-section h4 { font-size: 0.95rem; font-weight: 600; color: var(--accent3); margin-bottom: 0.5rem; }
+.analysis-section p { font-size: 0.85rem; line-height: 1.7; color: var(--ink); }
+
+.callout { background: var(--bg3); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 0 6px 6px 0; font-size: 0.85rem; }
+.callout.warn { border-left-color: var(--accent2); }
+.callout.danger { border-left-color: var(--red); }
+.callout strong { color: var(--accent); }
+.callout.warn strong { color: var(--accent2); }
+.callout.danger strong { color: var(--red); }
+
+.upload-area { border: 2px dashed var(--rule); border-radius: 12px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+.upload-area:hover { border-color: var(--accent); background: rgba(0,212,170,0.03); }
+.upload-area p { color: var(--muted); font-size: 0.85rem; }
+.upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+.report-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.2s; }
+.report-item:last-child { border-bottom: none; }
+.report-item:hover { background: var(--bg3); }
+.report-info h4 { font-size: 0.88rem; font-weight: 600; }
+.report-info span { font-size: 0.75rem; color: var(--muted); }
+.report-meta { text-align: right; font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+
+.sidebar-toggle { position: fixed; top: 1rem; left: 260px; z-index: 101; background: var(--bg2); border: 1px solid var(--rule); border-left: none; border-radius: 0 4px 4px 0; padding: 0.4rem; cursor: pointer; transition: left 0.3s; }
+.sidebar.compact ~ .sidebar-toggle { left: 64px; }
+
+/* --- Mobile Overlay --- */
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+
+/* --- Tablet (≤900px) --- */
+@media (max-width: 900px) {
+  .main { padding: 1.25rem; }
+  .quote-price { font-size: 2.2rem; }
+}
+
+/* --- Mobile (≤768px) --- */
 @media (max-width: 768px) {
-  .sidebar { width: 60px; }
-  .sidebar .nav-text, .sidebar .logo span { display: none; }
-  .sidebar .logo h1 { font-size: 0.9rem; }
-  .main { margin-left: 60px; padding: 1rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .sidebar { position: fixed; left: -260px; width: 260px; transition: left 0.3s; }
+  .sidebar.mobile-open { left: 0; }
+  .sidebar-overlay.show { display: block; }
+
+  .sidebar-toggle { left: 0; z-index: 102; top: 0.5rem; background: var(--accent); border: none; border-radius: 0 6px 6px 0; padding: 0.55rem 0.6rem; }
+  .sidebar-toggle svg { stroke: var(--bg); }
+
+  .main { margin-left: 0; padding: 0.85rem; padding-top: 3.25rem; }
+
+  /* Stats cards */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .stat-card { padding: 0.85rem; border-radius: 8px; }
+  .stat-card .stat-value { font-size: 1.3rem; }
+
+  /* Table horizontal scroll */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -0.85rem; padding: 0 0.85rem; }
+  table { min-width: 520px; }
+  th, td { padding: 0.55rem 0.65rem; font-size: 0.78rem; }
+
+  /* Card */
+  .card { border-radius: 8px; margin-bottom: 1rem; }
+  .card-header { padding: 0.75rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
+  .card-header h3 { font-size: 0.88rem; }
+
+  /* Quote card */
+  .quote-card { padding: 1rem; border-radius: 8px; }
+  .quote-main { flex-direction: column; gap: 0.5rem; }
+  .quote-price { font-size: 2rem; }
+  .quote-change { font-size: 1rem; }
+  .quote-info { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin-top: 1rem; padding-top: 1rem; }
+
+  /* Trade box */
+  .trade-box { grid-template-columns: 1fr; }
+  .trade-item { padding: 0.85rem; }
+
+  /* Stock detail */
+  .stock-detail-header { flex-direction: column; gap: 0.75rem; }
+  .stock-title-section h1 { font-size: 1.4rem; }
+
+  /* Metrics */
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .metric-box { padding: 0.6rem; }
+  .metric-box .value { font-size: 1rem; }
+
+  /* Reports */
+  .report-item { flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 0.85rem 1rem; }
+  .report-meta { width: 100%; justify-content: space-between; }
+  .upload-area { padding: 2rem 1rem; margin-bottom: 1rem; }
+
+  /* Buttons - larger touch targets */
+  .btn { padding: 0.55rem 1rem; font-size: 0.85rem; min-height: 36px; }
+  .btn-sm { padding: 0.4rem 0.75rem; min-height: 32px; font-size: 0.78rem; }
+
+  /* Chain flow scroll */
+  .chain-flow { padding: 0.5rem 0; font-size: 0.7rem; }
+  .chain-node { padding: 0.3rem 0.5rem; }
+
+  /* Page header */
+  .page-header { margin-bottom: 1rem; }
+  .page-header h2 { font-size: 1.25rem; }
+
+  /* Score bar compact */
+  .score-bar .score-val { font-size: 0.75rem; min-width: 2.5rem; }
+
+  /* Toast */
+  .toast { top: auto; bottom: 1.5rem; right: 0.85rem; left: 0.85rem; max-width: none; text-align: center; }
+
+  /* Report buttons row */
+  .report-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .report-btns .btn { flex: 1; justify-content: center; }
+}
+
+/* --- Small phone (≤480px) --- */
+@media (max-width: 480px) {
+  .main { padding: 0.65rem; padding-top: 3rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .stat-card { padding: 0.65rem; }
+  .stat-card .stat-value { font-size: 1.15rem; }
+  .stat-card .stat-label { font-size: 0.65rem; }
+  .quote-info { grid-template-columns: 1fr 1fr; }
+  .quote-price { font-size: 1.7rem; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .page-header h2 { font-size: 1.1rem; }
+  .stock-title-section h1 { font-size: 1.2rem; }
 }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="logo">
-      <h1>StockTracker</h1>
-      <span>A股选股追踪系统</span>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <h1>📈</h1>
+        <span>A股选股追踪</span>
+      </div>
     </div>
-    <div class="nav-item active" data-page="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      <span class="nav-text">仪表板</span>
+
+    <div class="nav-section">
+      <div class="nav-section-title">导航</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-text">仪表板</span>
+      </div>
+      <div class="nav-item" data-page="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-text">报告管理</span>
+      </div>
     </div>
-    <div class="nav-item" data-page="tracking">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span class="nav-text">实时追踪</span>
+
+    <div class="nav-section" id="stock-nav-section" style="display:none;">
+      <div class="nav-section-title">追踪股票</div>
+      <div class="stock-nav-items" id="stock-nav-items"></div>
     </div>
-    <div class="nav-item" data-page="reports">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span class="nav-text">报告管理</span>
+
+    <div class="theme-toggle">
+      <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="theme-text">日间模式</span>
+      </button>
     </div>
   </nav>
 
-  <!-- Main Content -->
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
   <div class="main">
-
-    <!-- ═══════ Dashboard Page ═══════ -->
-    <div id="page-dashboard" class="page active">
-      <div class="page-header">
-        <h2>仪表板</h2>
-        <p>A股选股追踪系统概览</p>
-      </div>
-      <div class="stats-grid" id="stats-grid"></div>
-      <div class="card">
-        <div class="card-header">
-          <h3>最近导入的报告</h3>
-        </div>
-        <div id="recent-reports"></div>
-      </div>
-    </div>
-
-    <!-- ═══════ Tracking Page ═══════ -->
-    <div id="page-tracking" class="page">
-      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <h2>实时追踪</h2>
-          <p>所有被追踪的股票及实时行情</p>
-        </div>
-        <button class="btn btn-primary" onclick="refreshQuotes()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-          刷新行情
-        </button>
-      </div>
-      <div class="card">
-        <div id="stock-table-container"></div>
-      </div>
-    </div>
-
-    <!-- ═══════ Reports Page ═══════ -->
-    <div id="page-reports" class="page">
-      <div class="page-header">
-        <h2>报告管理</h2>
-        <p>上传和管理选股报告</p>
-      </div>
-
-      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-        <input type="file" id="file-input" accept=".html" multiple style="display:none" onchange="handleUpload(this.files)">
-        <div class="icon">📄</div>
-        <p>点击或拖拽 HTML 选股报告到此处上传</p>
-      </div>
-
-      <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
-        <button class="btn btn-primary" onclick="scanSourceDir()">扫描源目录</button>
-        <span id="scan-status"></span>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h3>所有报告</h3>
-        </div>
-        <div id="reports-list"></div>
-      </div>
-
-      <!-- Report Viewer Modal -->
-      <div id="report-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;padding:2rem;">
-        <div style="max-width:1100px;margin:0 auto;height:100%;display:flex;flex-direction:column;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-            <h3 id="viewer-title" style="color:var(--ink);"></h3>
-            <button class="btn btn-danger btn-sm" onclick="closeViewer()">关闭</button>
-          </div>
-          <div class="report-viewer" style="flex:1;">
-            <iframe id="viewer-iframe" style="width:100%;height:100%;border:none;min-height:60vh;"></iframe>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div id="page-dashboard" class="page active"></div>
+    <div id="page-stock-detail" class="page"></div>
+    <div id="page-reports" class="page"></div>
   </div>
 </div>
 
-<!-- Toast -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const API = '';
+let currentTheme = 'dark';
+let currentStockId = null;
 
-// ── Navigation ──
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-    const page = item.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${page}`).classList.add('active');
-    if (page === 'dashboard') loadDashboard();
-    if (page === 'tracking') loadTracking();
-    if (page === 'reports') loadReports();
-  });
-});
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    currentTheme = saved;
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeButton();
+  }
+}
 
-// ── Toast ──
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('theme', currentTheme);
+  updateThemeButton();
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById('theme-btn');
+  const text = document.getElementById('theme-text');
+  text.textContent = currentTheme === 'dark' ? '日间模式' : '夜间模式';
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.toggle('mobile-open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  } else {
+    sidebar.classList.toggle('compact');
+  }
+}
+
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -253,7 +416,6 @@ function showToast(msg, isError = false) {
   setTimeout(() => t.className = 'toast', 3500);
 }
 
-// ── Helpers ──
 async function api(path, opts = {}) {
   const res = await fetch(API + path, opts);
   return res.json();
@@ -275,6 +437,14 @@ function formatVolume(val) {
   return n.toFixed(0);
 }
 
+function formatTurnover(val) {
+  if (!val) return '-';
+  const n = Number(val);
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
+  if (n >= 1e4) return (n / 1e4).toFixed(0) + '万';
+  return n.toFixed(0);
+}
+
 function changeClass(val) {
   const n = Number(val);
   if (n > 0) return 'change-up';
@@ -287,159 +457,393 @@ function changeSign(val) {
   return n > 0 ? '+' : '';
 }
 
-// ── Dashboard ──
-async function loadDashboard() {
-  const [stats, reports] = await Promise.all([
-    api('/api/dashboard'),
-    api('/api/reports'),
-  ]);
-
-  const sg = document.getElementById('stats-grid');
-  sg.innerHTML = `
-    <div class="stat-card"><div class="stat-label">已导入报告</div><div class="stat-value accent">${stats.total_reports}</div></div>
-    <div class="stat-card"><div class="stat-label">追踪中股票</div><div class="stat-value blue">${stats.active_stocks}</div></div>
-    <div class="stat-card"><div class="stat-label">价格记录数</div><div class="stat-value orange">${stats.total_price_records}</div></div>
-    <div class="stat-card"><div class="stat-label">最新报告</div><div class="stat-value" style="font-size:1rem;">${stats.latest_report ? stats.latest_report.date : '-'}</div></div>
-  `;
-
-  const rl = document.getElementById('recent-reports');
-  if (reports.length === 0) {
-    rl.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无报告，请上传或扫描源目录</p></div>';
-    return;
+async function loadSidebarStocks() {
+  try {
+    const stocks = await api('/api/stocks');
+    const navSection = document.getElementById('stock-nav-section');
+    const navItems = document.getElementById('stock-nav-items');
+    
+    if (stocks.length > 0) {
+      navSection.style.display = 'block';
+      navItems.innerHTML = stocks.map(s => `
+        <div class="stock-nav-item" data-stock-id="${s.id}" onclick="loadStockDetail(${s.id});closeMobileSidebar();">
+          <span class="stock-code">${s.code}</span>
+          <span class="stock-name">${s.name}</span>
+        </div>
+      `).join('');
+    } else {
+      navSection.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('Failed to load sidebar stocks:', e);
   }
-  rl.innerHTML = reports.slice(0, 5).map(r => `
-    <div class="report-item" onclick="viewReport(${r.id})">
-      <div class="report-info">
-        <h4>${r.title}</h4>
-        <span>${r.filename}</span>
-      </div>
-      <div class="report-meta">
-        <div>${r.date}</div>
-        <div style="color:var(--accent);">${r.stocks_count} 只股票</div>
-      </div>
-    </div>
-  `).join('');
 }
 
-// ── Tracking ──
-async function loadTracking() {
-  const container = document.getElementById('stock-table-container');
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    
+    if (page === 'dashboard') {
+      document.getElementById('page-dashboard').classList.add('active');
+      loadDashboard();
+    } else if (page === 'reports') {
+      document.getElementById('page-reports').classList.add('active');
+      loadReports();
+    }
+    closeMobileSidebar();
+  });
+});
+
+async function loadDashboard() {
+  const container = document.getElementById('page-dashboard');
   container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
 
-  const quotes = await api('/api/stocks/quotes');
+  try {
+    const [stats, quotes] = await Promise.all([
+      api('/api/dashboard'),
+      api('/api/stocks/quotes'),
+    ]);
 
-  if (quotes.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="icon">📊</div><p>暂无追踪中的股票，请先导入报告</p></div>';
-    return;
+    const stockTable = quotes.length > 0 ? `
+      <div class="card">
+        <div class="card-header">
+          <h3>追踪中股票</h3>
+          <button class="btn btn-primary" onclick="refreshDashboard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            刷新行情
+          </button>
+        </div>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>评分</th><th>操作</th></tr>
+          </thead>
+          <tbody>
+            ${quotes.map(q => `
+              <tr>
+                <td class="stock-code" onclick="loadStockDetail(${q.id})" style="cursor:pointer;">${q.code}</td>
+                <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
+                <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
+                <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
+                <td>
+                  ${q.score ? `
+                    <div class="score-bar">
+                      <div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div>
+                      <span class="score-val">${q.score.toFixed(1)}/10</span>
+                    </div>
+                  ` : '-'}
+                </td>
+                <td><button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    ` : '<div class="empty"><div class="icon">📊</div><p>暂无追踪中的股票，请先导入报告</p></div>';
+
+    const summaryInfo = stats.latest_report && stats.latest_report.summary ? `
+      <div class="card">
+        <div class="card-header"><h3>最新报告摘要</h3></div>
+        <div style="padding:1rem 1.25rem;">
+          <h4 style="color:var(--accent);margin-bottom:0.5rem;">${stats.latest_report.title}</h4>
+          <p style="font-size:0.85rem;color:var(--muted);">${stats.latest_report.date}</p>
+          ${stats.latest_report.summary.metrics ? `
+            <div class="metrics-grid" style="margin-top:1rem;">
+              ${Object.entries(stats.latest_report.summary.metrics).map(([k, v]) => `
+                <div class="metric-box">
+                  <div class="value">${v}</div>
+                  <div class="label">${k}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    ` : '';
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>仪表板</h2>
+        <p>A股选股追踪系统概览</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">已导入报告</div><div class="stat-value accent">${stats.total_reports}</div></div>
+        <div class="stat-card blue"><div class="stat-label">追踪中股票</div><div class="stat-value blue">${stats.active_stocks}</div></div>
+        <div class="stat-card accent2"><div class="stat-label">价格记录数</div><div class="stat-value orange">${stats.total_price_records}</div></div>
+        <div class="stat-card"><div class="stat-label">平均评分</div><div class="stat-value">${stats.avg_score || '-'}</div></div>
+      </div>
+      ${stockTable}
+      ${summaryInfo}
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
   }
-
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>代码</th>
-          <th>名称</th>
-          <th>最新价</th>
-          <th>涨跌幅</th>
-          <th>今开</th>
-          <th>最高</th>
-          <th>最低</th>
-          <th>成交额</th>
-          <th>市盈率</th>
-          <th>总市值</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${quotes.map(q => `
-          <tr>
-            <td class="stock-code">${q.code}</td>
-            <td><strong>${q.name}</strong></td>
-            <td class="price">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
-            <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
-            <td>${q.open_price ? q.open_price.toFixed(2) : '-'}</td>
-            <td>${q.high_price ? q.high_price.toFixed(2) : '-'}</td>
-            <td>${q.low_price ? q.low_price.toFixed(2) : '-'}</td>
-            <td>${formatVolume(q.turnover)}</td>
-            <td>${q.pe_ratio ? q.pe_ratio.toFixed(1) : '-'}</td>
-            <td>${formatMarketCap(q.market_cap)}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
 }
 
-async function refreshQuotes() {
+async function refreshDashboard() {
   showToast('正在刷新行情数据...');
-  await loadTracking();
+  await loadDashboard();
   showToast('行情数据已刷新');
+}
+
+async function loadStockDetail(stockId) {
+  currentStockId = stockId;
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector(`[data-stock-id="${stockId}"]`)?.classList.add('active');
+  
+  const container = document.getElementById('page-stock-detail');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  container.classList.add('active');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const data = await api(`/api/stocks/${stockId}/detail`);
+    
+    const priceClass = data.change_pct > 0 ? 'up' : data.change_pct < 0 ? 'down' : 'flat';
+    
+    const chainFlow = data.chain_flow?.length > 0 ? `
+      <div class="chain-flow">
+        ${data.chain_flow.map(node => `
+          <span class="chain-node ${node.highlight ? 'highlight' : ''}">${node.text}</span>
+          <span class="chain-arrow">→</span>
+        `).join('').slice(0, -38)}
+      </div>
+    ` : '';
+
+    const risks = data.risks?.length > 0 ? `
+      <ul class="risk-list">
+        ${data.risks.map(r => `<li class="${r.level === 'medium' ? 'medium' : ''}">${r.text}</li>`).join('')}
+      </ul>
+    ` : '';
+
+    const analysis = data.analysis_sections?.length > 0 ? `
+      ${data.analysis_sections.map(s => `
+        <div class="analysis-section">
+          <h4>${s.title}</h4>
+          <p>${s.content}</p>
+        </div>
+      `).join('')}
+    ` : '';
+
+    const metrics = data.metrics ? `
+      <div class="metrics-grid">
+        ${Object.entries(data.metrics).map(([k, v]) => {
+          let color = '';
+          if (k.includes('涨幅')) color = v.includes('+') ? 'green' : v.includes('-') ? 'red' : '';
+          else if (k.includes('PE')) color = 'blue';
+          return `<div class="metric-box"><div class="value ${color}">${v}</div><div class="label">${k}</div></div>`;
+        }).join('')}
+      </div>
+    ` : '';
+
+    const tradeBox = data.buy_price_range || data.target_price ? `
+      <div class="trade-box">
+        ${data.buy_price_range ? `
+          <div class="trade-item buy">
+            <div class="trade-label">买入策略</div>
+            <div class="trade-detail">${data.buy_price_range}</div>
+            <div class="trade-desc">${data.buy_strategy || ''}</div>
+          </div>
+        ` : ''}
+        ${data.target_price ? `
+          <div class="trade-item sell">
+            <div class="trade-label">目标与止损</div>
+            <div class="trade-detail">${data.target_price}${data.stop_loss_price ? ' / ' + data.stop_loss_price : ''}</div>
+            <div class="trade-desc">${data.target_desc || ''}</div>
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
+
+    const holdingInfo = data.holding_period || data.expected_return ? `
+      <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
+        ${data.holding_period ? `<div class="metric-box"><div class="value">${data.holding_period}</div><div class="label">建议持有时间</div></div>` : ''}
+        ${data.expected_return ? `<div class="metric-box"><div class="value green">${data.expected_return}</div><div class="label">预期收益率</div></div>` : ''}
+      </div>
+    ` : '';
+
+    const scoreBar = data.score ? `
+      <div class="score-bar">
+        <div class="bar-bg"><div class="bar-fill ${data.score >= 7 ? 'high' : data.score >= 5 ? 'mid' : 'low'}" style="width:${(data.score/10)*100}%"></div></div>
+        <span class="score-val">${data.score.toFixed(1)}/10</span>
+      </div>
+    ` : '';
+
+    container.innerHTML = `
+      <div class="page-header">
+        <div class="stock-detail-header">
+          <div class="stock-title-section">
+            <h1>${data.name}</h1>
+            <div class="stock-meta">
+              <span>${data.code}</span>
+              <span>·</span>
+              <span>${data.sector}</span>
+            </div>
+            ${scoreBar}
+          </div>
+          <button class="btn btn-primary" onclick="loadStockDetail(${stockId})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            刷新行情
+          </button>
+        </div>
+      </div>
+
+      <div class="quote-card">
+        <div class="quote-main">
+          <div>
+            <div class="quote-price ${priceClass}">${data.current_price ? data.current_price.toFixed(2) : '-'}</div>
+            <div class="quote-price ${priceClass}">${data.change_pct ? changeSign(data.change_pct) + data.change_pct.toFixed(2) + '%' : '-'}</div>
+          </div>
+        </div>
+        <div class="quote-info">
+          <div class="quote-info-item"><div class="label">今开</div><div class="value">${data.open_price ? data.open_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">最高</div><div class="value">${data.high_price ? data.high_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">最低</div><div class="value">${data.low_price ? data.low_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">成交额</div><div class="value">${formatTurnover(data.turnover)}</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>股票指标</h3></div>
+        <div style="padding:1rem 1.25rem;">${metrics}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>交易策略</h3></div>
+        <div style="padding:1rem 1.25rem;">
+          ${tradeBox}
+          ${holdingInfo}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>产业链关联</h3></div>
+        <div style="padding:1rem 1.25rem;">${chainFlow}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>风险提示</h3></div>
+        <div style="padding:1rem 1.25rem;">${risks || '<p style="color:var(--muted);">暂无风险信息</p>'}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>深度分析</h3></div>
+        <div style="padding:1rem 1.25rem;">${analysis || '<p style="color:var(--muted);">暂无深度分析内容</p>'}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>价格历史</h3></div>
+        <div id="price-history-${stockId}" style="padding:1rem 1.25rem;"></div>
+      </div>
+    `;
+
+    loadPriceHistory(stockId);
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+async function loadPriceHistory(stockId) {
+  try {
+    const records = await api(`/api/stocks/${stockId}/history`);
+    const container = document.getElementById(`price-history-${stockId}`);
+    if (records.length > 0) {
+      container.innerHTML = `
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>时间</th><th>价格</th><th>涨跌幅</th></tr></thead>
+          <tbody>
+            ${records.map(r => `
+              <tr>
+                <td>${new Date(r.recorded_at).toLocaleString('zh-CN')}</td>
+                <td class="price">${r.current_price.toFixed(2)}</td>
+                <td class="price ${changeClass(r.change_pct)}">${r.change_pct ? changeSign(r.change_pct) + r.change_pct.toFixed(2) + '%' : '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        </div>
+      `;
+    } else {
+      container.innerHTML = '<p style="color:var(--muted);">暂无价格历史记录</p>';
+    }
+  } catch (e) {
+    console.error('Failed to load price history:', e);
+  }
 }
 
 async function stopTrack(id, name) {
   if (!confirm(`确定停止追踪 ${name} 吗？`)) return;
   await api(`/api/stocks/${id}/deactivate`, { method: 'POST' });
   showToast(`已停止追踪 ${name}`);
-  loadTracking();
+  loadSidebarStocks();
+  loadDashboard();
 }
 
-// ── Reports ──
 async function loadReports() {
-  const reports = await api('/api/reports');
-  const rl = document.getElementById('reports-list');
-  if (reports.length === 0) {
-    rl.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无报告</p></div>';
-    return;
-  }
-  rl.innerHTML = reports.map(r => `
-    <div class="report-item">
-      <div class="report-info" onclick="viewReport(${r.id})">
-        <h4>${r.title}</h4>
-        <span>${r.filename} &middot; 导入于 ${r.parsed_at ? new Date(r.parsed_at).toLocaleDateString() : '-'}</span>
+  const container = document.getElementById('page-reports');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const reports = await api('/api/reports');
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>报告管理</h2>
+        <p>上传和管理选股报告</p>
       </div>
-      <div class="report-meta" style="display:flex;align-items:center;gap:1rem;">
-        <div>
-          <div>${r.date}</div>
-          <div style="color:var(--accent);">${r.stocks_count} 只股票</div>
+
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept=".html" multiple style="display:none" onchange="handleUpload(this.files)">
+        <div class="icon">📄</div>
+        <p>点击或拖拽 HTML 选股报告到此处上传</p>
+      </div>
+
+      <div class="report-btns">
+        <button class="btn btn-primary" onclick="scanSourceDir()">扫描源目录</button>
+        <span id="scan-status"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>所有报告</h3></div>
+        <div id="reports-list">
+          ${reports.length > 0 ? reports.map(r => `
+            <div class="report-item">
+              <div class="report-info">
+                <h4>${r.title}</h4>
+                <span>${r.filename} · ${r.date}</span>
+              </div>
+              <div class="report-meta" style="display:flex;align-items:center;gap:1rem;">
+                <div style="color:var(--accent);">${r.stocks_count} 只股票</div>
+                <button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})">删除</button>
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><div class="icon">📭</div><p>暂无报告</p></div>'}
         </div>
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteReport(${r.id})">删除</button>
       </div>
-    </div>
-  `).join('');
+    `;
+
+    const uploadArea = document.getElementById('upload-area');
+    if (uploadArea) {
+      uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+      uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+      uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleUpload(e.dataTransfer.files);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
 }
 
-async function viewReport(id) {
-  const report = await api(`/api/reports/${id}`);
-  document.getElementById('viewer-title').textContent = report.title;
-
-  // Create a blob URL with the full HTML content
-  const blob = new Blob([report.html_content], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  document.getElementById('viewer-iframe').src = url;
-  document.getElementById('report-viewer-overlay').style.display = 'flex';
-}
-
-function closeViewer() {
-  document.getElementById('report-viewer-overlay').style.display = 'none';
-  const iframe = document.getElementById('viewer-iframe');
-  if (iframe.src) URL.revokeObjectURL(iframe.src);
-  iframe.src = '';
-}
-
-// Close viewer with ESC
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeViewer();
-});
-
-async function deleteReport(id) {
-  if (!confirm('确定删除此报告吗？')) return;
-  await api(`/api/reports/${id}`, { method: 'DELETE' });
-  showToast('报告已删除');
-  loadReports();
-}
-
-// ── Upload ──
 async function handleUpload(files) {
   for (const file of files) {
     const form = new FormData();
@@ -452,35 +856,39 @@ async function handleUpload(files) {
     }
   }
   loadReports();
+  loadSidebarStocks();
   loadDashboard();
 }
 
-// Drag and drop
-const uploadArea = document.getElementById('upload-area');
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-uploadArea.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadArea.classList.remove('dragover');
-  handleUpload(e.dataTransfer.files);
-});
-
 async function scanSourceDir() {
   const status = document.getElementById('scan-status');
-  status.innerHTML = '<span class="spinner"></span> 扫描中...';
+  if (status) {
+    status.innerHTML = '<span class="spinner"></span> 扫描中...';
+  }
   try {
     const result = await api('/api/reports/scan', { method: 'POST' });
-    status.innerHTML = '';
+    if (status) status.innerHTML = '';
     showToast(result.message);
     loadReports();
+    loadSidebarStocks();
     loadDashboard();
   } catch (e) {
-    status.innerHTML = '';
+    if (status) status.innerHTML = '';
     showToast('扫描失败: ' + e.message, true);
   }
 }
 
-// ── Init ──
+async function deleteReport(id) {
+  if (!confirm('确定删除此报告吗？')) return;
+  await api(`/api/reports/${id}`, { method: 'DELETE' });
+  showToast('报告已删除');
+  loadReports();
+  loadSidebarStocks();
+  loadDashboard();
+}
+
+initTheme();
+loadSidebarStocks();
 loadDashboard();
 </script>
 </body>

@@ -1,26 +1,130 @@
 """API路由"""
 import os
-import shutil
 from datetime import datetime
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from pydantic import BaseModel
 
 from .database import get_db
-from .models import Report, TrackedStock, PriceRecord
+from .models import Report, TrackedStock, PriceRecord, User
 from .parser import parse_report, scan_reports_directory
 from .stock_service import get_stock_realtime_quote, get_multi_stock_quotes
 from .config import SOURCE_DIR, REPORTS_DIR
+from .auth import (
+    verify_password, create_access_token, get_current_user,
+    require_admin_or_invited, require_admin, get_password_hash,
+)
 
 router = APIRouter()
+
+
+# ── 认证 ──────────────────────────────────────────────
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    nickname: str | None = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    nickname: str | None
+    role: str
+
+
+@router.post("/api/auth/login")
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == req.username).first()
+    if not user or not verify_password(req.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    user.last_login = datetime.now()
+    db.commit()
+
+    token = create_access_token({"sub": user.username, "role": user.role})
+    return {
+        "token": token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "nickname": user.nickname,
+            "role": user.role,
+        },
+    }
+
+
+@router.post("/api/auth/register")
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.username == req.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="用户名已存在")
+
+    user = User(
+        username=req.username,
+        hashed_password=get_password_hash(req.password),
+        nickname=req.nickname or req.username,
+        role="viewer",
+    )
+    db.add(user)
+    db.commit()
+    return {"message": "注册成功，请联系管理员升级权限"}
+
+
+@router.get("/api/auth/me")
+def get_me(user: User = Depends(get_current_user)):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "nickname": user.nickname,
+        "role": user.role,
+    }
+
+
+# ── 用户管理（仅管理员）─────────────────────────────────
+
+@router.get("/api/users")
+def list_users(user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "nickname": u.nickname,
+            "role": u.role,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in users
+    ]
+
+
+class UpdateUserRole(BaseModel):
+    role: str
+
+
+@router.put("/api/users/{user_id}/role")
+def update_user_role(user_id: int, req: UpdateUserRole, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if req.role not in ("admin", "invited", "viewer"):
+        raise HTTPException(status_code=400, detail="无效的角色")
+    target.role = req.role
+    db.commit()
+    return {"message": f"已更新 {target.username} 的角色为 {req.role}"}
 
 
 # ── 报告管理 ──────────────────────────────────────────────
 
 @router.get("/api/reports")
 def list_reports(db: Session = Depends(get_db)):
-    """获取所有报告列表"""
     reports = db.query(Report).order_by(Report.date.desc()).all()
     return [
         {
@@ -38,7 +142,6 @@ def list_reports(db: Session = Depends(get_db)):
 
 @router.get("/api/reports/{report_id}")
 def get_report(report_id: int, db: Session = Depends(get_db)):
-    """获取报告详情（含HTML内容）"""
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="报告不存在")
@@ -58,8 +161,7 @@ def get_report(report_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/api/reports/upload")
-async def upload_report(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """上传报告HTML文件并解析"""
+async def upload_report(file: UploadFile = File(...), user: User = Depends(require_admin_or_invited), db: Session = Depends(get_db)):
     if not file.filename.endswith(".html"):
         raise HTTPException(status_code=400, detail="仅支持HTML文件")
 
@@ -78,8 +180,7 @@ async def upload_report(file: UploadFile = File(...), db: Session = Depends(get_
 
 
 @router.post("/api/reports/scan")
-def scan_source_directory(db: Session = Depends(get_db)):
-    """扫描源目录中的所有报告"""
+def scan_source_directory(user: User = Depends(require_admin_or_invited), db: Session = Depends(get_db)):
     reports = scan_reports_directory(SOURCE_DIR)
     added = 0
     for r in reports:
@@ -91,8 +192,7 @@ def scan_source_directory(db: Session = Depends(get_db)):
 
 
 @router.delete("/api/reports/{report_id}")
-def delete_report(report_id: int, db: Session = Depends(get_db)):
-    """删除报告"""
+def delete_report(report_id: int, user: User = Depends(require_admin_or_invited), db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="报告不存在")
@@ -104,7 +204,6 @@ def delete_report(report_id: int, db: Session = Depends(get_db)):
 
 
 def _save_report_to_db(parsed: dict, db: Session) -> dict:
-    """将解析结果保存到数据库"""
     existing = db.query(Report).filter(Report.filename == parsed["filename"]).first()
     if existing:
         return {"message": "报告已存在", "report_id": existing.id, "stocks_count": existing.stocks_count}
@@ -163,7 +262,6 @@ def _save_report_to_db(parsed: dict, db: Session) -> dict:
 
 
 def _update_stock_fields(stock, data):
-    """更新股票字段"""
     stock.metrics = data.get("metrics")
     stock.buy_price_range = data.get("buy_price_range")
     stock.buy_strategy = data.get("buy_strategy")
@@ -183,13 +281,11 @@ def _update_stock_fields(stock, data):
 
 @router.get("/api/stocks")
 def list_tracked_stocks(db: Session = Depends(get_db)):
-    """获取所有追踪中的股票"""
     stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
     return [_stock_to_dict(s) for s in stocks]
 
 
 def _stock_to_dict(stock: TrackedStock) -> dict:
-    """将TrackedStock转换为字典"""
     return {
         "id": stock.id,
         "code": stock.code,
@@ -216,7 +312,6 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
 
 @router.get("/api/stocks/quotes")
 def get_tracked_quotes(db: Session = Depends(get_db)):
-    """获取所有追踪股票的实时行情"""
     stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
     if not stocks:
         return []
@@ -254,7 +349,6 @@ def get_tracked_quotes(db: Session = Depends(get_db)):
 
 @router.get("/api/stocks/{stock_id}/detail")
 def get_stock_detail(stock_id: int, db: Session = Depends(get_db)):
-    """获取单只股票的完整详情（含报告分析内容）"""
     stock = db.query(TrackedStock).filter(TrackedStock.id == stock_id).first()
     if not stock:
         raise HTTPException(status_code=404, detail="股票不存在")
@@ -282,7 +376,6 @@ def get_stock_detail(stock_id: int, db: Session = Depends(get_db)):
 
 @router.get("/api/stocks/{stock_id}/history")
 def get_stock_history(stock_id: int, db: Session = Depends(get_db)):
-    """获取单只股票的价格历史记录"""
     records = (
         db.query(PriceRecord)
         .filter(PriceRecord.stock_id == stock_id)
@@ -301,8 +394,7 @@ def get_stock_history(stock_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/api/stocks/{stock_id}/deactivate")
-def deactivate_stock(stock_id: int, db: Session = Depends(get_db)):
-    """停止追踪某只股票"""
+def deactivate_stock(stock_id: int, user: User = Depends(require_admin_or_invited), db: Session = Depends(get_db)):
     stock = db.query(TrackedStock).filter(TrackedStock.id == stock_id).first()
     if not stock:
         raise HTTPException(status_code=404, detail="股票不存在")
@@ -313,7 +405,6 @@ def deactivate_stock(stock_id: int, db: Session = Depends(get_db)):
 
 @router.get("/api/stocks/{stock_code}/quote")
 def get_single_quote(stock_code: str, db: Session = Depends(get_db)):
-    """获取单只股票的实时行情"""
     if len(stock_code) > 6:
         exchange = stock_code[:2]
         code = stock_code[2:]
@@ -330,7 +421,6 @@ def get_single_quote(stock_code: str, db: Session = Depends(get_db)):
 
 @router.get("/api/dashboard")
 def dashboard_stats(db: Session = Depends(get_db)):
-    """仪表板统计数据"""
     total_reports = db.query(func.count(Report.id)).scalar()
     active_stocks = db.query(func.count(TrackedStock.id)).filter(TrackedStock.is_active == True).scalar()
     total_price_records = db.query(func.count(PriceRecord.id)).scalar()

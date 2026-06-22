@@ -6,6 +6,19 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 
+class User(Base):
+    """系统用户"""
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(200), nullable=False)
+    nickname = Column(String(50), nullable=True)
+    role = Column(String(20), default="viewer")
+    created_at = Column(DateTime, default=datetime.now)
+    last_login = Column(DateTime, nullable=True)
+
+
 class Report(Base):
     """选股报告"""
     __tablename__ = "reports"

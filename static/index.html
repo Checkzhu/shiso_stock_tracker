@@ -136,6 +136,10 @@ tr:hover td { background: rgba(0,212,170,0.03); }
 .change-down { color: var(--green); }
 .change-flat { color: var(--muted); }
 
+.added-return { text-align: center; }
+.added-return-pct { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
+.added-days { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
 .btn { padding: 0.45rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn:hover { background: var(--bg4); border-color: var(--muted); }
 .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
@@ -585,7 +589,7 @@ async function loadDashboard() {
           </button>
         </div>
         <table>
-          <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>评分</th><th>操作</th></tr></thead>
+          <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
           <tbody>
             ${quotes.map(q => `
               <tr>
@@ -593,8 +597,22 @@ async function loadDashboard() {
                 <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
                 <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
                 <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
+                <td>
+                  <div class="added-return">
+                    <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
+                    <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
+                  </div>
+                </td>
+                <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
+                <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
+                <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
+                <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
                 <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
-                <td>${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}</td>
+                <td>
+                  ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
+                  <br>
+                  ${canManage() ? `<button class="btn btn-sm" style="margin-top:0.25rem;" onclick="editAddedPrice(${q.id}, '${q.name}', ${q.added_price || 'null'})">设置成本</button>` : ''}
+                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -911,6 +929,18 @@ async function stopTrack(id, name) {
   showToast(`已停止追踪 ${name}`);
   loadSidebarStocks();
   loadDashboard();
+}
+
+async function editAddedPrice(id, name, currentPrice) {
+  const price = prompt(`设置 ${name} 的添加成本价：`, currentPrice || '');
+  if (price === null) return;
+  const parsed = parseFloat(price);
+  if (isNaN(parsed) || parsed <= 0) { showToast('请输入有效的价格', true); return; }
+  try {
+    await api(`/api/stocks/${id}/added_price`, { method: 'PUT', body: JSON.stringify({ added_price: parsed }) });
+    showToast(`已更新 ${name} 的添加价格`);
+    loadDashboard();
+  } catch (e) { showToast(e.message, true); }
 }
 
 async function loadReports() {

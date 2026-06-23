@@ -47,6 +47,7 @@ class TrackedStock(Base):
     sector = Column(String(200), nullable=True)
     report_id = Column(Integer, ForeignKey("reports.id"), nullable=True)
     added_at = Column(DateTime, default=datetime.now)
+    added_price = Column(Float, nullable=True)
     is_active = Column(Boolean, default=True)
 
     metrics = Column(JSON, nullable=True)

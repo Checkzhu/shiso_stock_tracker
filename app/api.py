@@ -294,6 +294,7 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
         "sector": stock.sector,
         "report_id": stock.report_id,
         "added_at": stock.added_at.isoformat() if stock.added_at else None,
+        "added_price": stock.added_price,
         "metrics": stock.metrics or {},
         "buy_price_range": stock.buy_price_range,
         "buy_strategy": stock.buy_strategy,
@@ -325,6 +326,42 @@ def get_tracked_quotes(db: Session = Depends(get_db)):
         quote = quotes.get(code, {})
         record = _stock_to_dict(s)
         record.update(quote)
+
+        # 计算添加后收益
+        added_price = s.added_price
+        current_price = quote.get("current_price")
+        if added_price and current_price:
+            record["added_return_pct"] = round((current_price - added_price) / added_price * 100, 2)
+        else:
+            record["added_return_pct"] = None
+
+        # 计算添加时长（天数）
+        if s.added_at:
+            delta = datetime.now() - s.added_at
+            record["added_days"] = delta.days
+        else:
+            record["added_days"] = None
+
+        # 计算各时间段收益
+        now = datetime.now()
+        from datetime import timedelta
+        periods = {
+            "return_1w": now - timedelta(days=7),
+            "return_1m": now - timedelta(days=30),
+            "return_3m": now - timedelta(days=90),
+            "return_1y": now - timedelta(days=365),
+        }
+        for key, since in periods.items():
+            old_record = (
+                db.query(PriceRecord)
+                .filter(PriceRecord.stock_id == s.id, PriceRecord.recorded_at >= since)
+                .order_by(PriceRecord.recorded_at.asc())
+                .first()
+            )
+            if old_record and old_record.current_price and current_price:
+                record[key] = round((current_price - old_record.current_price) / old_record.current_price * 100, 2)
+            else:
+                record[key] = None
 
         if quote.get("current_price"):
             price_record = PriceRecord(
@@ -391,6 +428,20 @@ def get_stock_history(stock_id: int, db: Session = Depends(get_db)):
         }
         for r in records
     ]
+
+
+class UpdateAddedPrice(BaseModel):
+    added_price: float
+
+
+@router.put("/api/stocks/{stock_id}/added_price")
+def update_added_price(stock_id: int, req: UpdateAddedPrice, user: User = Depends(require_admin_or_invited), db: Session = Depends(get_db)):
+    stock = db.query(TrackedStock).filter(TrackedStock.id == stock_id).first()
+    if not stock:
+        raise HTTPException(status_code=404, detail="股票不存在")
+    stock.added_price = req.added_price
+    db.commit()
+    return {"message": f"已更新 {stock.name} 的添加价格", "added_price": stock.added_price}
 
 
 @router.post("/api/stocks/{stock_id}/deactivate")

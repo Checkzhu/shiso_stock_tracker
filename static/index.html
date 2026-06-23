@@ -177,11 +177,12 @@ tr:hover td { background: rgba(0,212,170,0.03); }
 .quote-info-item .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .quote-info-item .value { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; margin-top: 0.25rem; }
 
-.chart-container { padding: 1.25rem; }
-.chart-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.chart-tab { padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.chart-container { padding: 0.5rem 0.75rem; }
+.chart-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.chart-tab { padding: 0.3rem 0.8rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
 .chart-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.chart-canvas { width: 100%; height: 280px; }
+.chart-canvas-wrap { width: 100%; }
+.chart-canvas { width: 100% !important; height: 120px !important; }
 
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
 .metric-box { background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; padding: 0.8rem; text-align: center; }
@@ -718,7 +719,7 @@ async function loadStockDetail(stockId) {
         </div>
       </div>
 
-      <div class="card">
+      <!-- <div class="card">
         <div class="card-header"><h3>行情图表</h3></div>
         <div class="chart-container">
           <div class="chart-tabs">
@@ -728,7 +729,7 @@ async function loadStockDetail(stockId) {
           <canvas id="price-chart" class="chart-canvas"></canvas>
           <canvas id="chip-chart" class="chart-canvas" style="display:none;"></canvas>
         </div>
-      </div>
+      </div> -->
 
       <div class="card">
         <div class="card-header"><h3>股票指标</h3></div>
@@ -835,20 +836,19 @@ function renderPriceChart(prices, labels, changes) {
         data: prices,
         borderColor: color,
         backgroundColor: fillColor,
-        borderWidth: 2,
+        borderWidth: 1.5,
         fill: true,
         tension: 0.3,
-        pointRadius: 2,
-        pointHoverRadius: 5,
+        pointRadius: 1,
+        pointHoverRadius: 3,
       }],
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxTicksLimit: 8 } },
-        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa' }, position: 'right' },
+        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxTicksLimit: 6, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', font: { size: 10 } }, position: 'right' },
       },
     },
   });
@@ -876,7 +876,6 @@ function renderChipChart(data) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -886,8 +885,8 @@ function renderChipChart(data) {
         },
       },
       scales: {
-        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxRotation: 45, minRotation: 45 } },
-        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', callback: v => v + '%' } },
+        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxRotation: 45, minRotation: 45, font: { size: 9 } } },
+        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', callback: v => v + '%', font: { size: 10 } } },
       },
     },
   });

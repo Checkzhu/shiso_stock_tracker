@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  stock_tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stock_tracker
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    env_file:
+      - .env
+    restart: unless-stopped

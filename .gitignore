@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+.env
+reports/
+data/
+source/
+Dockerfile.local
+docker-compose.local.yml
+server.log
+server.err.log

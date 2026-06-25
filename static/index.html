@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紫苏叶理论 · 七步分析框架</title>
+<style>
+:root {
+  --bg: #0a0e17;
+  --bg2: #111827;
+  --bg3: #1a2332;
+  --bg4: #222d3d;
+  --ink: #e8ecf1;
+  --muted: #8899aa;
+  --rule: #2a3545;
+  --accent: #00d4aa;
+  --accent2: #ff6b35;
+  --accent3: #3b82f6;
+  --red: #ef4444;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --font: -apple-system, 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrainsMono', 'Consolas', monospace;
+}
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg4: #e2e8f0;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --rule: #e2e8f0;
+  --accent: #0d9488;
+  --accent2: #ea580c;
+  --accent3: #3b82f6;
+  --red: #dc2626;
+  --green: #16a34a;
+  --yellow: #ca8a04;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--ink); line-height: 1.6; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+
+/* Login */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+.login-box { background: var(--bg2); border: 1px solid var(--rule); border-radius: 16px; padding: 2.5rem; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.login-box h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: 0.25rem; text-align: center; }
+.login-box .subtitle { text-align: center; color: var(--muted); font-size: 0.78rem; margin-bottom: 2rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; }
+.form-group input { width: 100%; padding: 0.7rem 1rem; background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; color: var(--ink); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.form-group input:focus { border-color: var(--accent); }
+.login-btn { width: 100%; padding: 0.8rem; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 0.5rem; }
+.login-btn:hover { background: #00b894; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-footer { text-align: center; margin-top: 1.5rem; font-size: 0.78rem; color: var(--muted); }
+.login-footer a { color: var(--accent); cursor: pointer; text-decoration: none; }
+.login-error { background: rgba(239,68,68,0.1); border: 1px solid var(--red); color: var(--red); padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.82rem; margin-bottom: 1rem; display: none; text-align: center; }
+
+/* App Layout */
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; background: var(--bg2); border-right: 1px solid var(--rule); padding: 1.25rem 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: width 0.3s; }
+.sidebar.compact { width: 64px; }
+.main { margin-left: 260px; flex: 1; padding: 2rem; min-height: 100vh; transition: margin-left 0.3s; }
+.sidebar.compact ~ .main { margin-left: 64px; }
+
+.sidebar-header { padding: 0 1.25rem 1.25rem; border-bottom: 1px solid var(--rule); margin-bottom: 1rem; }
+.sidebar.compact .sidebar-header { padding: 0.5rem 0.75rem; text-align: center; }
+.logo h1 { font-size: 1.05rem; color: var(--accent); letter-spacing: -0.02em; font-weight: 700; }
+.sidebar.compact .logo h1 { font-size: 1.5rem; }
+.logo span { font-size: 0.7rem; color: var(--muted); display: block; margin-top: 0.15rem; }
+.sidebar.compact .logo span { display: none; }
+
+.nav-section { padding: 0.5rem 0; }
+.nav-section-title { padding: 0.4rem 1.25rem; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar.compact .nav-section-title { display: none; }
+
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 0.86rem; border-left: 3px solid transparent; }
+.sidebar.compact .nav-item { padding: 0.65rem 0.75rem; justify-content: center; }
+.nav-item:hover { background: var(--bg3); color: var(--ink); }
+.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,212,170,0.08); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item .nav-text { flex: 1; }
+.sidebar.compact .nav-text { display: none; }
+
+.stock-nav-items { max-height: 200px; overflow-y: auto; }
+.stock-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.sidebar.compact .stock-nav-item { padding: 0.5rem 0.75rem; justify-content: center; }
+.stock-nav-item:hover { background: var(--bg3); color: var(--ink); }
+.stock-nav-item.active { color: var(--accent); }
+.stock-nav-item .stock-code { font-family: var(--font-mono); font-size: 0.75rem; }
+.stock-nav-item .stock-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar.compact .stock-name, .sidebar.compact .stock-code { display: none; }
+
+.user-info { padding: 0.75rem 1.25rem; border-top: 1px solid var(--rule); margin-top: auto; display: flex; align-items: center; gap: 0.5rem; }
+.sidebar.compact .user-info { padding: 0.5rem; justify-content: center; }
+.user-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--bg); flex-shrink: 0; }
+.user-details { flex: 1; overflow: hidden; }
+.user-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 0.68rem; color: var(--muted); }
+.sidebar.compact .user-details { display: none; }
+.logout-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 0.25rem; display: flex; }
+.logout-btn:hover { color: var(--red); }
+.sidebar.compact .logout-btn { display: none; }
+
+.theme-toggle { padding: 0.5rem 1.25rem; }
+.theme-btn { width: 100%; padding: 0.5rem; border-radius: 20px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
+.theme-btn:hover { background: var(--bg4); color: var(--ink); }
+.sidebar.compact .theme-toggle { padding: 0.5rem; }
+
+.page-header { margin-bottom: 1.75rem; }
+.page-header h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.page-header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+.stat-card.blue::before { background: var(--accent3); }
+.stat-card.orange::before { background: var(--accent2); }
+.stat-card .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .stat-value { font-size: 1.7rem; font-weight: 700; font-family: var(--font-mono); margin-top: 0.3rem; }
+.stat-card .stat-value.accent { color: var(--accent); }
+.stat-card .stat-value.blue { color: var(--accent3); }
+.stat-card .stat-value.orange { color: var(--accent2); }
+
+.card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+.card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+.card-header h3 { font-size: 0.95rem; font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 0.7rem 1rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--rule); background: var(--bg3); }
+td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--rule); font-size: 0.85rem; vertical-align: middle; }
+tr:hover td { background: rgba(0,212,170,0.03); }
+.stock-code { font-family: var(--font-mono); font-weight: 600; color: var(--accent3); font-size: 0.8rem; cursor: pointer; }
+.price { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
+.change-up { color: var(--red); }
+.change-down { color: var(--green); }
+.change-flat { color: var(--muted); }
+
+.added-return { text-align: center; }
+.added-return-pct { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
+.added-days { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+.btn { padding: 0.45rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem; }
+.btn:hover { background: var(--bg4); border-color: var(--muted); }
+.btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: #00b894; }
+.btn-danger { background: transparent; color: var(--red); border-color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,0.1); }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+.loading { text-align: center; padding: 3rem; color: var(--muted); }
+.spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--rule); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+.empty .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+.toast { position: fixed; top: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--accent); color: var(--ink); padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.85rem; z-index: 9999; transform: translateX(120%); transition: transform 0.3s; max-width: 400px; }
+.toast.show { transform: translateX(0); }
+.toast.error { border-color: var(--red); }
+
+.page { display: none; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Stock Detail */
+.stock-detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+.stock-title-section h1 { font-size: 1.8rem; font-weight: 700; }
+.stock-title-section .stock-meta { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+.stock-title-section .stock-meta span { font-family: var(--font-mono); }
+
+.quote-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.quote-main { display: flex; align-items: flex-end; gap: 2rem; }
+.quote-price { font-family: var(--font-mono); font-size: 3rem; font-weight: 700; }
+.quote-price.up { color: var(--red); }
+.quote-price.down { color: var(--green); }
+.quote-price.flat { color: var(--ink); }
+.quote-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+.quote-info-item { text-align: center; }
+.quote-info-item .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.quote-info-item .value { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; margin-top: 0.25rem; }
+
+.chart-container { padding: 0.5rem 0.75rem; }
+.chart-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.chart-tab { padding: 0.3rem 0.8rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.chart-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chart-canvas-wrap { width: 100%; }
+.chart-canvas { width: 100% !important; height: 120px !important; }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.metric-box { background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; padding: 0.8rem; text-align: center; }
+.metric-box .value { font-size: 1.2rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent); }
+.metric-box .value.red { color: var(--red); }
+.metric-box .value.green { color: var(--green); }
+.metric-box .value.blue { color: var(--accent3); }
+.metric-box .label { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+
+.trade-box { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.trade-item { background: var(--bg3); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem; }
+.trade-item.buy { border-top: 3px solid var(--green); }
+.trade-item.sell { border-top: 3px solid var(--red); }
+.trade-item .trade-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+.trade-item.buy .trade-label { color: var(--green); }
+.trade-item.sell .trade-label { color: var(--red); }
+.trade-item .trade-detail { font-size: 1.1rem; font-weight: 700; }
+.trade-item .trade-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+
+.chain-flow { display: flex; align-items: center; gap: 0.25rem; padding: 1rem 0; overflow-x: auto; font-size: 0.75rem; font-family: var(--font-mono); }
+.chain-node { background: var(--bg3); border: 1px solid var(--rule); padding: 0.4rem 0.6rem; border-radius: 4px; white-space: nowrap; }
+.chain-node.highlight { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+.chain-arrow { color: var(--muted); font-size: 0.9rem; }
+
+.risk-list { list-style: none; padding: 0; margin: 1rem 0; }
+.risk-list li { padding: 0.7rem 0.8rem 0.7rem 2rem; border-bottom: 1px solid var(--rule); font-size: 0.85rem; position: relative; }
+.risk-list li::before { content: '!'; position: absolute; left: 0.5rem; top: 0.7rem; width: 1.1rem; height: 1.1rem; background: var(--red); color: var(--bg); font-size: 0.65rem; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.risk-list li.medium::before { background: var(--yellow); }
+
+.score-bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
+.score-bar .bar-bg { flex: 1; height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.score-bar .bar-fill { height: 100%; border-radius: 5px; transition: width 0.5s; }
+.score-bar .bar-fill.high { background: var(--green); }
+.score-bar .bar-fill.mid { background: var(--yellow); }
+.score-bar .bar-fill.low { background: var(--red); }
+.score-bar .score-val { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; min-width: 3rem; text-align: right; }
+
+/* Serenity 紫苏叶四维评分 */
+.serenity-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+.serenity-card { background: var(--bg3); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 0.75rem; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+.serenity-card:hover { transform: translateY(-2px); }
+.serenity-card .ser-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; }
+.serenity-card .ser-value { font-size: 1.7rem; font-weight: 900; font-family: var(--font-mono); line-height: 1.1; }
+.serenity-card .ser-value.high { color: #34d399; }
+.serenity-card .ser-value.mid { color: #fbbf24; }
+.serenity-card .ser-value.low { color: #f87171; }
+.serenity-card .ser-desc { font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.4; min-height: 2.4em; }
+.serenity-card.high { border-color: rgba(52,211,153,0.35); }
+.serenity-card.mid { border-color: rgba(251,191,36,0.35); }
+.serenity-card.low { border-color: rgba(248,113,113,0.35); }
+
+/* 深度分析结构化样式 */
+.depth-section { margin-bottom: 1.5rem; }
+.depth-section:last-child { margin-bottom: 0; }
+.depth-section-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule); }
+.depth-sub-section { margin-bottom: 1rem; }
+.depth-sub-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 0.4rem; display: flex; align-items: baseline; gap: 0.3rem; }
+.depth-sub-title .num { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+.depth-text { font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+.depth-text ul { margin: 0.3rem 0 0.3rem 1.2rem; }
+.depth-text li { margin-bottom: 0.25rem; }
+.depth-text p { margin: 0 0 0.4rem; }
+.depth-text p:last-child { margin-bottom: 0; }
+.depth-callout { background: var(--bg3); border: 1px solid var(--rule); border-left: 3px solid var(--accent2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--text); line-height: 1.7; margin-top: 0.5rem; }
+.depth-callout strong { color: var(--red); }
+.depth-empty { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+.analysis-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
+.analysis-section:last-child { border-bottom: none; }
+.analysis-section h4 { font-size: 0.95rem; font-weight: 600; color: var(--accent3); margin-bottom: 0.5rem; }
+.analysis-section p { font-size: 0.85rem; line-height: 1.7; }
+
+.upload-area { border: 2px dashed var(--rule); border-radius: 12px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+.upload-area:hover { border-color: var(--accent); background: rgba(0,212,170,0.03); }
+.upload-area p { color: var(--muted); font-size: 0.85rem; }
+.upload-area .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+.report-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.report-item:last-child { border-bottom: none; }
+.report-info h4 { font-size: 0.88rem; font-weight: 600; }
+.report-info span { font-size: 0.75rem; color: var(--muted); }
+.report-meta { display: flex; align-items: center; gap: 1rem; }
+
+.sidebar-toggle { position: fixed; top: 1rem; left: 260px; z-index: 101; background: var(--bg2); border: 1px solid var(--rule); border-left: none; border-radius: 0 4px 4px 0; padding: 0.4rem; cursor: pointer; transition: left 0.3s; }
+.sidebar.compact ~ .sidebar-toggle { left: 64px; }
+
+/* User Management */
+.user-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.user-item:last-child { border-bottom: none; }
+.user-item-info { display: flex; align-items: center; gap: 0.75rem; }
+.user-role-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+.user-role-badge.admin { background: var(--accent); color: var(--bg); }
+.user-role-badge.invited { background: var(--accent3); color: white; }
+.user-role-badge.viewer { background: var(--bg4); color: var(--muted); }
+.role-select { padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); font-size: 0.8rem; cursor: pointer; }
+.invite-code-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.invite-code-item:last-child { border-bottom: none; }
+.invite-code-info { flex: 1; }
+
+/* Mobile table: horizontal scroll */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-wrap table { min-width: 900px; }
+
+/* Mobile stock cards (alternative to table) */
+.stock-cards { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 0; display: none; }
+  .main { margin-left: 0; padding: 0.75rem; }
+  .sidebar-toggle { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .stat-card { padding: 0.75rem; }
+  .stat-card .stat-value { font-size: 1.3rem; }
+  .quote-info { grid-template-columns: repeat(2, 1fr); }
+  .trade-box { grid-template-columns: 1fr; }
+  .stock-detail-header { flex-direction: column; gap: 1rem; }
+  .page-header h2 { font-size: 1.2rem; }
+  .page-header p { font-size: 0.75rem; }
+  .quote-price { font-size: 2rem; }
+  .login-box { width: 92%; padding: 1.5rem; }
+  .card-header { padding: 0.75rem 1rem; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .user-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .report-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .report-meta { width: 100%; justify-content: space-between; }
+  .serenity-grid { grid-template-columns: repeat(2, 1fr); }
+  .serenity-card .ser-value { font-size: 1.4rem; }
+}
+
+/* AI Provider Config */
+.provider-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.provider-item:last-child { border-bottom: none; }
+.provider-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+.provider-badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: var(--accent3); color: white; }
+.provider-badge.healthy { background: var(--green); }
+.provider-badge.unhealthy { background: var(--red); }
+.provider-badge.inactive { background: var(--bg4); color: var(--muted); }
+.provider-actions { display: flex; gap: 0.5rem; align-items: center; }
+.provider-detail { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-full { grid-column: 1 / -1; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.modal h3 { margin-bottom: 1rem; font-size: 1.1rem; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+
+/* Analysis Progress */
+.task-progress { margin: 1rem 0; }
+.progress-bar-wrap { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+.progress-bar-fill.error { background: var(--red); }
+.task-status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+.task-status-badge.pending { background: var(--yellow); color: var(--bg); }
+.task-status-badge.running { background: var(--accent3); color: white; }
+.task-status-badge.completed { background: var(--green); color: white; }
+.task-status-badge.failed { background: var(--red); color: white; }
+.task-status-badge.cancelled { background: var(--bg4); color: var(--muted); }
+.task-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.task-item:last-child { border-bottom: none; }
+.task-info { flex: 1; }
+.task-info h4 { font-size: 0.88rem; font-weight: 600; }
+.task-info span { font-size: 0.75rem; color: var(--muted); }
+.task-meta { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Analysis History */
+.analysis-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.2s; }
+.analysis-item:hover { background: var(--bg3); }
+.analysis-item:last-child { border-bottom: none; }
+.analysis-item-header { display: flex; justify-content: space-between; align-items: center; }
+.analysis-item-title { font-weight: 600; font-size: 0.9rem; }
+.analysis-item-meta { font-size: 0.75rem; color: var(--muted); display: flex; gap: 1rem; margin-top: 0.3rem; }
+.analysis-detail-section { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+.analysis-detail-section:last-child { border-bottom: none; }
+.analysis-detail-section h4 { font-size: 0.9rem; font-weight: 600; color: var(--accent3); margin-bottom: 0.5rem; }
+.analysis-detail-section p { font-size: 0.85rem; line-height: 1.7; color: var(--ink); }
+.version-badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.65rem; background: var(--accent3); color: white; margin-left: 0.5rem; }
+.version-badge.current { background: var(--green); }
+.history-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.history-tab { padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.history-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* Selectable stock cards for analysis */
+.stock-select-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+.stock-select-card { background: var(--bg3); border: 2px solid var(--rule); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; }
+.stock-select-card:hover { border-color: var(--accent3); }
+.stock-select-card.selected { border-color: var(--accent); background: rgba(0,212,170,0.08); }
+.stock-select-card .stock-select-name { font-weight: 600; font-size: 0.85rem; }
+.stock-select-card .stock-select-code { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .quote-info { grid-template-columns: 1fr; }
+  .main { padding: 0.5rem; }
+  .page-header { margin-bottom: 1rem; }
+  .quote-card { padding: 1rem; }
+  .metric-box { padding: 0.6rem; }
+  .metric-box .value { font-size: 1rem; }
+  .trade-item { padding: 0.75rem; }
+  .nav-item { padding: 0.5rem 1rem; font-size: 0.8rem; }
+  th, td { padding: 0.5rem 0.6rem; font-size: 0.78rem; }
+  .stock-code { font-size: 0.72rem; }
+  .price { font-size: 0.85rem; }
+  .added-return-pct { font-size: 0.85rem; }
+  .btn-sm { padding: 0.2rem 0.4rem; font-size: 0.7rem; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="login-page" class="login-page">
+  <div class="login-box">
+    <h1>紫苏叶理论</h1>
+    <p class="subtitle">七步分析框架 × 对抗性论证</p>
+    <div class="login-error" id="login-error"></div>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" id="login-username" placeholder="请输入用户名" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="login-password" placeholder="请输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">登录</button>
+    <p class="login-footer">没有账号？<a onclick="showRegister()">注册账号</a></p>
+  </div>
+</div>
+
+<div id="register-box" class="login-page" style="display:none;">
+  <div class="login-box">
+    <h1>注册账号</h1>
+    <p class="subtitle">注册后需管理员授权才能上传报告</p>
+    <div class="login-error" id="reg-error"></div>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" id="reg-username" placeholder="请输入用户名">
+    </div>
+    <div class="form-group">
+      <label>昵称</label>
+      <input type="text" id="reg-nickname" placeholder="请输入昵称">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="reg-password" placeholder="请输入密码">
+    </div>
+    <div class="form-group">
+      <label>邀请码（选填）</label>
+      <input type="text" id="reg-invite-code" placeholder="有邀请码可自动获得权限">
+    </div>
+    <button class="login-btn" onclick="doRegister()">注册</button>
+    <p class="login-footer">已有账号？<a onclick="showLogin()">返回登录</a></p>
+  </div>
+</div>
+
+<div id="app" class="app" style="display:none;">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <h1>📈</h1>
+        <span>七步分析框架</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">导航</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-text">仪表板</span>
+      </div>
+      <div class="nav-item" data-page="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-text">报告管理</span>
+      </div>
+    </div>
+
+    <div class="nav-section" id="admin-nav-section" style="display:none;">
+      <div class="nav-section-title">系统管理</div>
+      <div class="nav-item" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="nav-text">用户管理</span>
+      </div>
+      <div class="nav-section-title">AI分析</div>
+      <div class="nav-item" data-page="ai-config">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="nav-text">模型配置</span>
+      </div>
+      <div class="nav-item" data-page="ai-analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="nav-text">AI分析</span>
+      </div>
+      <div class="nav-item" data-page="ai-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-text">分析历史</span>
+      </div>
+    </div>
+
+    <div class="nav-section" id="stock-nav-section" style="display:none;">
+      <div class="nav-section-title">追踪股票</div>
+      <div class="stock-nav-items" id="stock-nav-items"></div>
+    </div>
+
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-details">
+        <div class="user-name" id="user-name"></div>
+        <div class="user-role" id="user-role"></div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="退出登录">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+
+    <div class="theme-toggle">
+      <button class="theme-btn" onclick="toggleTheme()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        <span id="theme-text">日间模式</span>
+      </button>
+    </div>
+  </nav>
+
+  <button class="sidebar-toggle" onclick="toggleSidebar()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <div class="main">
+    <div id="page-dashboard" class="page active"></div>
+    <div id="page-stock-detail" class="page"></div>
+    <div id="page-reports" class="page"></div>
+    <div id="page-users" class="page"></div>
+    <div id="page-ai-config" class="page"></div>
+    <div id="page-ai-analysis" class="page"></div>
+    <div id="page-ai-history" class="page"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let currentTheme = 'dark';
+let currentUser = null;
+let token = localStorage.getItem('token');
+let priceChart = null;
+let chipChart = null;
+let currentStockId = null;
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    currentTheme = saved;
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeButton();
+  }
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('theme', currentTheme);
+  updateThemeButton();
+  if (priceChart) renderPriceChart(window._priceHistoryData, window._priceHistoryLabels);
+  if (chipChart) renderChipChart(window._chipData);
+}
+
+function updateThemeButton() {
+  document.getElementById('theme-text').textContent = currentTheme === 'dark' ? '日间模式' : '夜间模式';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('compact');
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers: { ...headers, ...opts.headers } });
+  if (res.status === 401) { logout(); throw new Error('未登录'); }
+  if (res.status === 403) { showToast('无权限执行此操作', true); throw new Error('无权限'); }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `请求失败 (${res.status})` }));
+    throw new Error(err.detail || `请求失败 (${res.status})`);
+  }
+  return res.json();
+}
+
+async function apiRaw(path, opts = {}) {
+  const headers = {};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers: { ...headers, ...opts.headers } });
+  if (res.status === 401) { logout(); }
+  return res.json();
+}
+
+function formatTurnover(val) {
+  if (!val) return '-';
+  const n = Number(val);
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
+  return n.toFixed(0);
+}
+
+function changeClass(val) {
+  const n = Number(val);
+  if (n > 0) return 'change-up';
+  if (n < 0) return 'change-down';
+  return 'change-flat';
+}
+
+function changeSign(val) {
+  const n = Number(val);
+  return n > 0 ? '+' : '';
+}
+
+function canManage() {
+  return currentUser && (currentUser.role === 'admin' || currentUser.role === 'invited');
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  if (!username || !password) { showToast('请输入用户名和密码', true); return; }
+
+  btn.disabled = true;
+  btn.textContent = '登录中...';
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || '登录失败');
+
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(currentUser));
+    showApp();
+  } catch (e) {
+    document.getElementById('login-error').textContent = e.message;
+    document.getElementById('login-error').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登录';
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const nickname = document.getElementById('reg-nickname').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const invite_code = document.getElementById('reg-invite-code').value.trim();
+  if (!username || !password) { showToast('请输入用户名和密码', true); return; }
+
+  try {
+    const res = await fetch(API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, nickname, invite_code: invite_code || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || '注册失败');
+    showToast(data.message);
+    showLogin();
+  } catch (e) {
+    document.getElementById('reg-error').textContent = e.message;
+    document.getElementById('reg-error').style.display = 'block';
+  }
+}
+
+function showLogin() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('register-box').style.display = 'none';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function showRegister() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('register-box').style.display = 'flex';
+  document.getElementById('reg-error').style.display = 'none';
+}
+
+function logout() {
+  token = null;
+  currentUser = null;
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('register-box').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  document.getElementById('user-name').textContent = currentUser.nickname || currentUser.username;
+  document.getElementById('user-role').textContent = { admin: '管理员', invited: '受邀用户', viewer: '普通用户' }[currentUser.role] || currentUser.role;
+  document.getElementById('user-avatar').textContent = (currentUser.nickname || currentUser.username).charAt(0).toUpperCase();
+
+  // 显示/隐藏管理员导航
+  const adminNav = document.getElementById('admin-nav-section');
+  if (adminNav) {
+    adminNav.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+  }
+
+  loadSidebarStocks();
+  loadDashboard();
+}
+
+async function loadSidebarStocks() {
+  try {
+    const stocks = await api('/api/stocks');
+    const navSection = document.getElementById('stock-nav-section');
+    const navItems = document.getElementById('stock-nav-items');
+
+    if (stocks.length > 0) {
+      navSection.style.display = 'block';
+      navItems.innerHTML = stocks.map(s => `
+        <div class="stock-nav-item" data-stock-id="${s.id}" onclick="loadStockDetail(${s.id})">
+          <span class="stock-code">${s.code}</span>
+          <span class="stock-name">${s.name}</span>
+        </div>
+      `).join('');
+    } else {
+      navSection.style.display = 'none';
+    }
+  } catch (e) { console.error(e); }
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+    if (page === 'dashboard') { document.getElementById('page-dashboard').classList.add('active'); loadDashboard(); }
+    else if (page === 'reports') { document.getElementById('page-reports').classList.add('active'); loadReports(); }
+    else if (page === 'users') { document.getElementById('page-users').classList.add('active'); loadUsers(); }
+    else if (page === 'ai-config') { document.getElementById('page-ai-config').classList.add('active'); loadAIConfig(); }
+    else if (page === 'ai-analysis') { document.getElementById('page-ai-analysis').classList.add('active'); loadAIAnalysis(); }
+    else if (page === 'ai-history') { document.getElementById('page-ai-history').classList.add('active'); loadAIHistory(); }
+  });
+});
+
+async function loadDashboard() {
+  const container = document.getElementById('page-dashboard');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const [stats, quotes] = await Promise.all([api('/api/dashboard'), api('/api/stocks/quotes')]);
+
+    const stockTable = quotes.length > 0 ? `
+      <div class="card">
+        <div class="card-header">
+          <h3>追踪中股票</h3>
+          <button class="btn btn-primary" onclick="refreshDashboard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            刷新行情
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加时价格</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
+            <tbody>
+              ${quotes.map(q => `
+                <tr>
+                  <td class="stock-code" onclick="loadStockDetail(${q.id})">${q.code}</td>
+                  <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
+                  <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
+                  <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
+                  <td class="price">${q.added_price ? q.added_price.toFixed(2) : '-'}</td>
+                  <td>
+                    <div class="added-return">
+                      <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
+                      <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
+                    </div>
+                  </td>
+                  <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
+                  <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
+                  <td>
+                    ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ` : '<div class="empty"><div class="icon">📊</div><p>暂无追踪中的股票</p></div>';
+
+    const summaryInfo = stats.latest_report && stats.latest_report.summary ? `
+      <div class="card">
+        <div class="card-header"><h3>最新报告摘要</h3></div>
+        <div style="padding:1rem 1.25rem;">
+          <h4 style="color:var(--accent);margin-bottom:0.5rem;">${stats.latest_report.title}</h4>
+          <p style="font-size:0.85rem;color:var(--muted);">${stats.latest_report.date}</p>
+          ${stats.latest_report.summary.metrics ? `
+            <div class="metrics-grid" style="margin-top:1rem;">
+              ${Object.entries(stats.latest_report.summary.metrics).map(([k, v]) => `<div class="metric-box"><div class="value">${v}</div><div class="label">${k}</div></div>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    ` : '';
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>仪表板</h2>
+        <p>紫苏叶理论 · 七步分析框架 · 对抗性论证</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">已导入报告</div><div class="stat-value accent">${stats.total_reports}</div></div>
+        <div class="stat-card blue"><div class="stat-label">追踪股票</div><div class="stat-value blue">${stats.active_stocks}</div></div>
+        <div class="stat-card orange"><div class="stat-label">价格记录</div><div class="stat-value orange">${stats.total_price_records}</div></div>
+        <div class="stat-card"><div class="stat-label">平均评分</div><div class="stat-value">${stats.avg_score || '-'}</div></div>
+      </div>
+      ${stockTable}
+      ${summaryInfo}
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+async function refreshDashboard() {
+  showToast('正在刷新行情...');
+  await loadDashboard();
+  showToast('行情已刷新');
+}
+
+async function loadStockDetail(stockId) {
+  currentStockId = stockId;
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector(`[data-stock-id="${stockId}"]`)?.classList.add('active');
+
+  const container = document.getElementById('page-stock-detail');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  container.classList.add('active');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const data = await api(`/api/stocks/${stockId}/detail`);
+
+    const priceClass = data.change_pct > 0 ? 'up' : data.change_pct < 0 ? 'down' : 'flat';
+    const chainFlow = data.chain_flow?.length > 0 ? `
+      <div class="chain-flow">
+        ${data.chain_flow.map(node => `<span class="chain-node ${node.highlight ? 'highlight' : ''}">${node.text}</span><span class="chain-arrow">→</span>`).join('').slice(0, -38)}
+      </div>
+    ` : '';
+    const risks = data.risks?.length > 0 ? `<ul class="risk-list">${data.risks.map(r => `<li class="${r.level === 'medium' ? 'medium' : ''}">${r.text}</li>`).join('')}</ul>` : '';
+    const metrics = data.metrics ? `
+      <div class="metrics-grid">
+        ${Object.entries(data.metrics).map(([k, v]) => {
+          let color = '';
+          if (k.includes('涨幅')) color = v.includes('+') ? 'green' : v.includes('-') ? 'red' : '';
+          else if (k.includes('PE')) color = 'blue';
+          return `<div class="metric-box"><div class="value ${color}">${v}</div><div class="label">${k}</div></div>`;
+        }).join('')}
+      </div>
+    ` : '';
+    const tradeBox = (data.buy_price_range || data.target_price) ? `
+      <div class="trade-box">
+        ${data.buy_price_range ? `<div class="trade-item buy"><div class="trade-label">买入策略</div><div class="trade-detail">${data.buy_price_range}</div><div class="trade-desc">${data.buy_strategy || ''}</div></div>` : ''}
+        ${data.target_price ? `<div class="trade-item sell"><div class="trade-label">目标与止损</div><div class="trade-detail">${data.target_price}${data.stop_loss_price ? ' / ' + data.stop_loss_price : ''}</div><div class="trade-desc">${data.target_desc || ''}</div></div>` : ''}
+      </div>
+    ` : '';
+    const holdingInfo = (data.holding_period || data.expected_return) ? `
+      <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
+        ${data.holding_period ? `<div class="metric-box"><div class="value">${data.holding_period}</div><div class="label">建议持有时间</div></div>` : ''}
+        ${data.expected_return ? `<div class="metric-box"><div class="value green">${data.expected_return}</div><div class="label">预期收益率</div></div>` : ''}
+      </div>
+    ` : '';
+    const scoreBar = data.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${data.score >= 15 ? 'high' : data.score >= 10 ? 'mid' : 'low'}" style="width:${Math.min(100, (data.score/20)*100)}%"></div></div><span class="score-val">${data.score.toFixed(1)}/20</span></div>` : '';
+
+    // 紫苏叶四维评分
+    const serenity = data.serenity_scores || {};
+    const serenityKeys = [
+      { key: 'necessity', label: '刚需性' },
+      { key: 'scarcity', label: '稀缺性' },
+      { key: 'unpopularity', label: '冷门性' },
+      { key: 'valuation', label: '估值空间' },
+    ];
+    const serenityGrid = `
+      <div class="serenity-grid">
+        ${serenityKeys.map(({ key, label }) => {
+          const item = serenity[key];
+          if (!item) {
+            return `<div class="serenity-card"><div class="ser-label">${label}</div><div class="ser-value mid">-</div><div class="ser-desc">暂无数据</div></div>`;
+          }
+          return `<div class="serenity-card ${item.level}">
+            <div class="ser-label">${label}</div>
+            <div class="ser-value ${item.level}">${item.score_text || (item.score != null ? item.score + '/10' : '-')}</div>
+            <div class="ser-desc">${item.desc || ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+
+    // 构建深度分析 HTML
+    function formatText(text) {
+      if (!text) return '';
+      return text.split('。').filter(s => s.trim()).map(s => s.trim() + '。').join('');
+    }
+
+    function renderSubItem(title, text, prefix) {
+      if (!text) return '';
+      return `<div class="depth-sub-section">
+        <div class="depth-sub-title"><span class="num">${prefix}</span>${title}</div>
+        <div class="depth-text">${formatText(text)}</div>
+      </div>`;
+    }
+
+    const depth = data.depth_analysis || {};
+    const riseReasons = depth.rise_reasons || {};
+
+    const depthAnalysisHtml = (() => {
+      const sections = [];
+
+      // 1. 行业技术关联性
+      if (depth.industry_tech) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">一、行业技术关联性</div>
+          <div class="depth-text">${formatText(depth.industry_tech)}</div>
+        </div>`);
+      }
+
+      // 2. 上涨原因分析
+      if (riseReasons.basic || riseReasons.technical || riseReasons.capital || riseReasons.policy) {
+        const subItems = [
+          { k: 'basic', l: '基本面驱动', n: '2.1' },
+          { k: 'technical', l: '技术面信号', n: '2.2' },
+          { k: 'capital', l: '资金面动向', n: '2.3' },
+          { k: 'policy', l: '政策面利好', n: '2.4' },
+        ].map(({ k, l, n }) => renderSubItem(l, riseReasons[k], n)).join('');
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">二、上涨原因分析</div>
+          ${subItems}
+        </div>`);
+      }
+
+      // 3. Serenity产业链深度分析
+      const serenityItems = [
+        { k: 'physics_limits', l: '技术路线的物理极限', n: '3.1' },
+        { k: 'substitution_threat', l: '潜在替代方案的威胁', n: '3.2' },
+        { k: 'supply_demand_logic', l: '行业供需测算的逻辑偏差', n: '3.3' },
+        { k: 'geo_risk', l: '地缘政策风险', n: '3.4' },
+        { k: 'capacity_feasibility', l: '标的产能扩张计划的可行性', n: '3.5' },
+        { k: 'feasibility_assessment', l: '可行性评估', n: '3.6' },
+        { k: 'demand_sustainability', l: '下游需求的可持续性', n: '3.7' },
+        { k: 'valuation_rationality', l: '估值体系的合理性', n: '3.8' },
+      ].filter(({ k }) => depth[k]).map(({ k, l, n }) => renderSubItem(l, depth[k], n)).join('');
+      if (serenityItems) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">三、Serenity产业链深度分析</div>
+          ${serenityItems}
+        </div>`);
+      }
+
+      // 4. 不可替代性测试
+      if (depth.irreplaceability) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">四、不可替代性测试</div>
+          <div class="depth-callout">${formatText(depth.irreplaceability)}</div>
+        </div>`);
+      }
+
+      return sections.length > 0 ? sections.join('') : '<div class="depth-empty">暂无深度分析数据</div>';
+    })();
+
+    container.innerHTML = `
+      <div class="page-header">
+        <div class="stock-detail-header">
+          <div class="stock-title-section">
+            <h1>${data.name}</h1>
+            <div class="stock-meta"><span>${data.code}</span><span>·</span><span>${data.sector}</span></div>
+            ${scoreBar}
+          </div>
+          <button class="btn btn-primary" onclick="loadStockDetail(${stockId})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            刷新行情
+          </button>
+          ${currentUser && currentUser.role === 'admin' ? `
+          <button class="btn btn-primary" onclick="triggerSingleStockAnalysis(${stockId})" style="background:var(--accent2);border-color:var(--accent2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            AI分析
+          </button>
+          <button class="btn" onclick="viewStockAnalysisHistory(${stockId})">分析历史</button>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="quote-card">
+        <div class="quote-main">
+          <div>
+            <div class="quote-price ${priceClass}">${data.current_price ? data.current_price.toFixed(2) : '-'}</div>
+            <div class="quote-price ${priceClass}" style="font-size:1.5rem;">${data.change_pct ? changeSign(data.change_pct) + data.change_pct.toFixed(2) + '%' : '-'}</div>
+          </div>
+        </div>
+        <div class="quote-info">
+          <div class="quote-info-item"><div class="label">今开</div><div class="value">${data.open_price ? data.open_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">最高</div><div class="value">${data.high_price ? data.high_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">最低</div><div class="value">${data.low_price ? data.low_price.toFixed(2) : '-'}</div></div>
+          <div class="quote-info-item"><div class="label">成交额</div><div class="value">${formatTurnover(data.turnover)}</div></div>
+        </div>
+      </div>
+
+      <!-- <div class="card">
+        <div class="card-header"><h3>行情图表</h3></div>
+        <div class="chart-container">
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChart(this, 'price')">分时走势</button>
+            <button class="chart-tab" onclick="switchChart(this, 'chip')">筹码分布</button>
+          </div>
+          <canvas id="price-chart" class="chart-canvas"></canvas>
+          <canvas id="chip-chart" class="chart-canvas" style="display:none;"></canvas>
+        </div>
+      </div> -->
+
+      <div class="card">
+        <div class="card-header"><h3>紫苏叶四维评分</h3></div>
+        <div style="padding:1rem 1.25rem;">${serenityGrid}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>股票指标</h3></div>
+        <div style="padding:1rem 1.25rem;">${metrics}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>交易策略</h3></div>
+        <div style="padding:1rem 1.25rem;">${tradeBox}${holdingInfo}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>产业链关联</h3></div>
+        <div style="padding:1rem 1.25rem;">${chainFlow}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>风险提示</h3></div>
+        <div style="padding:1rem 1.25rem;">${risks || '<p style="color:var(--muted);">暂无风险信息</p>'}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>深度分析</h3></div>
+        <div style="padding:1rem 1.25rem;">${depthAnalysisHtml}</div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function switchChart(btn, type) {
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('price-chart').style.display = type === 'price' ? 'block' : 'none';
+  document.getElementById('chip-chart').style.display = type === 'chip' ? 'block' : 'none';
+}
+
+async function loadStockChartData(stockId) {
+  try {
+    const [historyData, detailData] = await Promise.all([
+      api(`/api/stocks/${stockId}/history`),
+      api(`/api/stocks/${stockId}/detail`),
+    ]);
+
+    const prices = historyData.map(r => r.current_price).reverse();
+    const labels = historyData.map(r => new Date(r.recorded_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })).reverse();
+    const changes = historyData.map(r => r.change_pct).reverse();
+
+    window._priceHistoryData = prices;
+    window._priceHistoryLabels = labels;
+    window._priceHistoryChanges = changes;
+
+    const currentPrice = detailData.current_price || 0;
+    const highPrice = detailData.high_price || currentPrice * 1.05;
+    const lowPrice = detailData.low_price || currentPrice * 0.95;
+    window._chipData = generateChipData(currentPrice, highPrice, lowPrice);
+
+    renderPriceChart(prices, labels, changes);
+    renderChipChart(window._chipData);
+  } catch (e) {
+    console.error('Chart data load error:', e);
+  }
+}
+
+function generateChipData(currentPrice, highPrice, lowPrice) {
+  const bands = [];
+  const range = highPrice - lowPrice;
+  const step = range / 10;
+  for (let i = 0; i < 10; i++) {
+    const price = lowPrice + step * i;
+    let amount;
+    if (i < 3) amount = Math.random() * 20 + 30;
+    else if (i < 7) amount = Math.random() * 40 + 40;
+    else amount = Math.random() * 20 + 10;
+    bands.push({ price: price.toFixed(2), amount: Math.round(amount) });
+  }
+  return bands;
+}
+
+function renderPriceChart(prices, labels, changes) {
+  const ctx = document.getElementById('price-chart');
+  if (!ctx) return;
+  if (priceChart) priceChart.destroy();
+
+  const isUp = (changes?.[changes.length - 1] || 0) >= 0;
+  const color = isUp ? '#ef4444' : '#22c55e';
+  const fillColor = isUp ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)';
+
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '价格',
+        data: prices,
+        borderColor: color,
+        backgroundColor: fillColor,
+        borderWidth: 1.5,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 1,
+        pointHoverRadius: 3,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxTicksLimit: 6, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', font: { size: 10 } }, position: 'right' },
+      },
+    },
+  });
+}
+
+function renderChipChart(data) {
+  const ctx = document.getElementById('chip-chart');
+  if (!ctx) return;
+  if (chipChart) chipChart.destroy();
+
+  const colors = data.map(d => d.amount > 60 ? 'rgba(239,68,68,0.7)' : d.amount > 40 ? 'rgba(255,193,7,0.7)' : 'rgba(34,197,94,0.7)');
+
+  chipChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.price),
+      datasets: [{
+        label: '筹码集中度',
+        data: data.map(d => d.amount),
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace('0.7', '1')),
+        borderWidth: 1,
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `价格 ${ctx.label}元: ${ctx.raw}%筹码`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', maxRotation: 45, minRotation: 45, font: { size: 9 } } },
+        y: { grid: { color: 'rgba(42,53,69,0.5)' }, ticks: { color: '#8899aa', callback: v => v + '%', font: { size: 10 } } },
+      },
+    },
+  });
+}
+
+async function loadPriceHistory(stockId) {
+  try {
+    const records = await api(`/api/stocks/${stockId}/history`);
+    const container = document.getElementById(`price-history-${stockId}`);
+    if (records.length > 0) {
+      container.innerHTML = `<table><thead><tr><th>时间</th><th>价格</th><th>涨跌幅</th></tr></thead><tbody>${records.map(r => `<tr><td>${new Date(r.recorded_at).toLocaleString('zh-CN')}</td><td class="price">${r.current_price.toFixed(2)}</td><td class="price ${changeClass(r.change_pct)}">${r.change_pct ? changeSign(r.change_pct) + r.change_pct.toFixed(2) + '%' : '-'}</td></tr>`).join('')}</tbody></table>`;
+    } else {
+      container.innerHTML = '<p style="color:var(--muted);">暂无价格历史记录</p>';
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function stopTrack(id, name) {
+  if (!confirm(`确定停止追踪 ${name} 吗？`)) return;
+  await api(`/api/stocks/${id}/deactivate`, { method: 'POST' });
+  showToast(`已停止追踪 ${name}`);
+  loadSidebarStocks();
+  loadDashboard();
+}
+
+async function editAddedPrice(id, name, currentPrice) {
+  const price = prompt(`设置 ${name} 的添加成本价：`, currentPrice || '');
+  if (price === null) return;
+  const parsed = parseFloat(price);
+  if (isNaN(parsed) || parsed <= 0) { showToast('请输入有效的价格', true); return; }
+  try {
+    await api(`/api/stocks/${id}/added_price`, { method: 'PUT', body: JSON.stringify({ added_price: parsed }) });
+    showToast(`已更新 ${name} 的添加价格`);
+    loadDashboard();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function loadReports() {
+  const container = document.getElementById('page-reports');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const reports = await api('/api/reports');
+    const canUpload = canManage();
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>报告管理</h2>
+        <p>上传和管理选股报告</p>
+      </div>
+
+      ${canUpload ? `
+        <div class="upload-area" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept=".html" multiple style="display:none" onchange="handleUpload(this.files)">
+          <div class="icon">📄</div>
+          <p>点击或拖拽 HTML 选股报告到此处上传</p>
+        </div>
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
+          <button class="btn btn-primary" onclick="scanSourceDir()">扫描源目录</button>
+          <span id="scan-status"></span>
+        </div>
+      ` : '<div class="card" style="padding:1.5rem;margin-bottom:1.5rem;color:var(--muted);text-align:center;">仅管理员和受邀用户可以上传报告</div>'}
+
+      <div class="card">
+        <div class="card-header"><h3>所有报告</h3></div>
+        <div>
+          ${reports.length > 0 ? reports.map(r => `
+            <div class="report-item">
+              <div class="report-info">
+                <h4>${r.title}</h4>
+                <span>${r.filename} · ${r.date}</span>
+              </div>
+              <div class="report-meta">
+                <span style="color:var(--accent);">${r.stocks_count} 只股票</span>
+                ${canUpload ? `<button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})">删除</button>` : ''}
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><div class="icon">📭</div><p>暂无报告</p></div>'}
+        </div>
+      </div>
+    `;
+
+    const uploadArea = document.querySelector('.upload-area');
+    if (uploadArea) {
+      uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+      uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+      uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleUpload(e.dataTransfer.files);
+      });
+    }
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+async function handleUpload(files) {
+  for (const file of files) {
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch(API + '/api/reports/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: form });
+      const result = await res.json();
+      showToast(result.message + (result.stocks_count ? `，发现 ${result.stocks_count} 只股票` : ''));
+    } catch (e) { showToast('上传失败: ' + e.message, true); }
+  }
+  loadReports();
+  loadSidebarStocks();
+  loadDashboard();
+}
+
+async function scanSourceDir() {
+  const status = document.getElementById('scan-status');
+  if (status) status.innerHTML = '<span class="spinner"></span> 扫描中...';
+  try {
+    const result = await api('/api/reports/scan', { method: 'POST' });
+    if (status) status.innerHTML = '';
+    showToast(result.message);
+    loadReports();
+    loadSidebarStocks();
+    loadDashboard();
+  } catch (e) {
+    if (status) status.innerHTML = '';
+    showToast('扫描失败: ' + e.message, true);
+  }
+}
+
+async function deleteReport(id) {
+  if (!confirm('确定删除此报告吗？')) return;
+  await api(`/api/reports/${id}`, { method: 'DELETE' });
+  showToast('报告已删除');
+  loadReports();
+  loadSidebarStocks();
+  loadDashboard();
+}
+
+async function loadUsers() {
+  if (!currentUser || currentUser.role !== 'admin') {
+    document.getElementById('page-users').innerHTML = '<div class="empty"><div class="icon">🔒</div><p>仅管理员可访问此页面</p></div>';
+    return;
+  }
+
+  const container = document.getElementById('page-users');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const [users, inviteCodes] = await Promise.all([
+      api('/api/users'),
+      api('/api/invite-codes'),
+    ]);
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>用户管理</h2>
+        <p>管理系统用户、权限和邀请码</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>用户列表 (${users.length})</h3></div>
+        <div>
+          ${users.length > 0 ? users.map(u => `
+            <div class="user-item">
+              <div class="user-item-info">
+                <div class="user-avatar">${(u.nickname || u.username).charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="user-name">${u.nickname || u.username}</div>
+                  <div class="user-role">@${u.username} · ${u.invite_code ? '邀请码: ' + u.invite_code : ''}</div>
+                  <div style="font-size:0.72rem;color:var(--muted);">注册: ${u.created_at ? new Date(u.created_at).toLocaleDateString('zh-CN') : '-'} · 最后登录: ${u.last_login ? new Date(u.last_login).toLocaleDateString('zh-CN') : '从未'}</div>
+                </div>
+                <span class="user-role-badge ${u.role}">${u.role === 'admin' ? '管理员' : u.role === 'invited' ? '受邀用户' : '普通用户'}</span>
+              </div>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <select class="role-select" onchange="changeUserRole(${u.id}, this.value)" ${u.id === currentUser.id ? 'disabled' : ''}>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>管理员</option>
+                  <option value="invited" ${u.role==='invited'?'selected':''}>受邀用户</option>
+                  <option value="viewer" ${u.role==='viewer'?'selected':''}>普通用户</option>
+                </select>
+                ${u.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username}')">删除</button>` : ''}
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><p>暂无用户</p></div>'}
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.5rem;">
+        <div class="card-header">
+          <h3>邀请码管理</h3>
+          <button class="btn btn-primary btn-sm" onclick="showCreateInviteCodeModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            生成邀请码
+          </button>
+        </div>
+        <div>
+          ${inviteCodes.length > 0 ? inviteCodes.map(c => `
+            <div class="invite-code-item">
+              <div class="invite-code-info">
+                <div style="font-weight:600;font-size:0.95rem;font-family:var(--font-mono);">${c.code}</div>
+                <div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">
+                  角色: <span class="user-role-badge ${c.role}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${c.role === 'admin' ? '管理员' : c.role === 'invited' ? '受邀用户' : '普通用户'}</span>
+                  · 已用: ${c.used_count}${c.max_uses > 0 ? '/' + c.max_uses : '/无限'}
+                  · 创建者: ${c.created_by || '-'}
+                  ${c.expires_at ? '· 过期: ' + new Date(c.expires_at).toLocaleDateString('zh-CN') : ''}
+                  ${c.note ? '· 备注: ' + c.note : ''}
+                </div>
+              </div>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <span class="provider-badge ${!c.is_active || c.is_expired ? 'unhealthy' : 'healthy'}">${c.is_expired ? '已过期' : c.is_active ? '有效' : '已禁用'}</span>
+                <button class="btn btn-sm" onclick="toggleInviteCode(${c.id})">${c.is_active ? '禁用' : '启用'}</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteInviteCode(${c.id}, '${c.code}')">删除</button>
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><p>暂无邀请码</p></div>'}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function showCreateInviteCodeModal() {
+  const html = `
+    <div class="modal-overlay" id="invite-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <h3>生成邀请码</h3>
+        <div class="form-group">
+          <label>默认角色</label>
+          <select id="invite-role" class="role-select" style="width:100%;padding:0.7rem;">
+            <option value="viewer">普通用户</option>
+            <option value="invited">受邀用户</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>最大使用次数（0表示无限）</label>
+          <input type="number" id="invite-max-uses" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>过期天数（留空表示永不过期）</label>
+          <input type="number" id="invite-expires-days" placeholder="如 30" min="1">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <input type="text" id="invite-note" placeholder="如 给张三的邀请码">
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="document.getElementById('invite-modal').remove()">取消</button>
+          <button class="btn btn-primary" onclick="createInviteCode()">生成</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function createInviteCode() {
+  const role = document.getElementById('invite-role').value;
+  const max_uses = parseInt(document.getElementById('invite-max-uses').value) || 0;
+  const expires_days = parseInt(document.getElementById('invite-expires-days').value) || null;
+  const note = document.getElementById('invite-note').value.trim() || null;
+
+  try {
+    const result = await api('/api/invite-codes', {
+      method: 'POST',
+      body: JSON.stringify({ role, max_uses, expires_days, note }),
+    });
+    showToast(`邀请码已生成: ${result.code}`);
+    document.getElementById('invite-modal')?.remove();
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function changeUserRole(userId, role) {
+  try {
+    await api(`/api/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }), headers: { 'Content-Type': 'application/json' } });
+    showToast('权限已更新');
+  } catch (e) { showToast(e.message, true); loadUsers(); }
+}
+
+async function deleteUser(userId, username) {
+  if (!confirm(`确定删除用户 "${username}" 吗？此操作不可恢复。`)) return;
+  try {
+    await api(`/api/users/${userId}`, { method: 'DELETE' });
+    showToast(`已删除用户 ${username}`);
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function toggleInviteCode(codeId) {
+  try {
+    const result = await api(`/api/invite-codes/${codeId}/toggle`, { method: 'PUT' });
+    showToast(result.message);
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteInviteCode(codeId, code) {
+  if (!confirm(`确定删除邀请码 "${code}" 吗？`)) return;
+  try {
+    await api(`/api/invite-codes/${codeId}`, { method: 'DELETE' });
+    showToast('邀请码已删除');
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+// ── AI模型配置页面 ──────────────────────────────────────
+
+let providerDefaults = { types: {}, defaults: {} };
+
+async function loadProviderDefaults() {
+  try {
+    providerDefaults = await api('/api/ai/providers/defaults');
+  } catch (e) { console.error(e); }
+}
+
+async function loadAIConfig() {
+  const container = document.getElementById('page-ai-config');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    await loadProviderDefaults();
+    const providers = await api('/api/ai/providers') || [];
+
+    const types = providerDefaults.types || {};
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>AI模型配置</h2>
+        <p>管理AI分析使用的模型供应商，支持多个供应商自动切换</p>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <button class="btn btn-primary" onclick="showAddProviderModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加模型供应商
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>已配置的供应商</h3></div>
+        <div>
+          ${providers.length > 0 ? providers.map(p => `
+            <div class="provider-item">
+              <div class="provider-info">
+                <div>
+                  <div style="font-weight:600;font-size:0.9rem;">${p.name}</div>
+                  <div class="provider-detail">
+                    ${types[p.provider_type] || p.provider_type} · ${p.model_name} · 优先级 ${p.priority}
+                    ${p.last_error ? `<br><span style="color:var(--red);font-size:0.7rem;">${p.last_error}</span>` : ''}
+                    ${p.last_used_at ? `<br><span>上次使用: ${new Date(p.last_used_at).toLocaleString('zh-CN')}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="provider-actions">
+                <span class="provider-badge ${!p.is_active ? 'inactive' : p.is_healthy ? 'healthy' : 'unhealthy'}">${!p.is_active ? '已禁用' : p.is_healthy ? '正常' : '异常'}</span>
+                <button class="btn btn-sm" onclick="testProvider(${p.id})">测试连接</button>
+                <button class="btn btn-sm" onclick="showEditProviderModal(${p.id})">编辑</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProvider(${p.id}, '${p.name}')">删除</button>
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><div class="icon">🤖</div><p>尚未配置任何AI模型供应商</p><p style="font-size:0.8rem;margin-top:0.5rem;">点击上方按钮添加供应商以启用AI分析功能</p></div>'}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p><p style="font-size:0.8rem;margin-top:0.5rem;">如果是首次使用，请重启应用以创建数据库表</p></div>`;
+  }
+}
+
+function showAddProviderModal() {
+  const types = providerDefaults.types || {};
+  const defaults = providerDefaults.defaults || {};
+  const typeOptions = Object.entries(types).length > 0
+    ? Object.entries(types).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')
+    : '<option value="custom">自定义 (OpenAI兼容)</option><option value="openai">OpenAI</option><option value="deepseek">DeepSeek</option><option value="zhipu">智谱AI</option><option value="qwen">通义千问</option><option value="moonshot">月之暗面</option><option value="ollama">Ollama (本地)</option>';
+  const html = `
+    <div class="modal-overlay" id="provider-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <h3>添加AI模型供应商</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>供应商名称</label>
+            <input type="text" id="pv-name" placeholder="如：DeepSeek主力">
+          </div>
+          <div class="form-group">
+            <label>供应商类型</label>
+            <select id="pv-type" class="role-select" style="width:100%;padding:0.7rem;" onchange="onProviderTypeChange()">
+              ${typeOptions}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>API Base URL</label>
+            <input type="text" id="pv-base" placeholder="API地址">
+          </div>
+          <div class="form-group">
+            <label>模型名称</label>
+            <input type="text" id="pv-model" placeholder="如 deepseek-chat">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label>API Key（本地模型可留空）</label>
+          <input type="password" id="pv-key" placeholder="sk-...">
+        </div>
+        <div class="form-row three">
+          <div class="form-group">
+            <label>最大Token数</label>
+            <input type="number" id="pv-tokens" value="4096">
+          </div>
+          <div class="form-group">
+            <label>Temperature</label>
+            <input type="number" id="pv-temp" value="0.7" step="0.1" min="0" max="2">
+          </div>
+          <div class="form-group">
+            <label>优先级（越大越优先）</label>
+            <input type="number" id="pv-priority" value="0">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="document.getElementById('provider-modal').remove()">取消</button>
+          <button class="btn btn-primary" onclick="saveNewProvider()">保存</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  onProviderTypeChange();
+}
+
+function onProviderTypeChange() {
+  const type = document.getElementById('pv-type')?.value;
+  const defaults = providerDefaults.defaults || {};
+  if (type && defaults[type]) {
+    const d = defaults[type];
+    const baseInput = document.getElementById('pv-base');
+    const modelInput = document.getElementById('pv-model');
+    if (baseInput && d.api_base) baseInput.value = d.api_base;
+    if (modelInput && d.model) modelInput.value = d.model;
+  }
+}
+
+async function saveNewProvider() {
+  const data = {
+    name: document.getElementById('pv-name').value.trim(),
+    provider_type: document.getElementById('pv-type').value,
+    api_base: document.getElementById('pv-base').value.trim(),
+    model_name: document.getElementById('pv-model').value.trim(),
+    api_key: document.getElementById('pv-key').value.trim() || null,
+    max_tokens: parseInt(document.getElementById('pv-tokens').value) || 4096,
+    temperature: parseFloat(document.getElementById('pv-temp').value) || 0.7,
+    priority: parseInt(document.getElementById('pv-priority').value) || 0,
+  };
+  if (!data.name) { showToast('请输入供应商名称', true); return; }
+  try {
+    await api('/api/ai/providers', { method: 'POST', body: JSON.stringify(data) });
+    showToast('供应商已添加');
+    document.getElementById('provider-modal')?.remove();
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function showEditProviderModal(id) {
+  try {
+    const providers = await api('/api/ai/providers');
+    const p = providers.find(x => x.id === id);
+    if (!p) { showToast('供应商不存在', true); return; }
+
+    const html = `
+      <div class="modal-overlay" id="provider-modal" onclick="if(event.target===this)this.remove()">
+        <div class="modal">
+          <h3>编辑供应商: ${p.name}</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>供应商名称</label>
+              <input type="text" id="pv-name" value="${p.name}">
+            </div>
+            <div class="form-group">
+              <label>供应商类型</label>
+              <input type="text" value="${(providerDefaults.types || {})[p.provider_type] || p.provider_type}" disabled>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>API Base URL</label>
+              <input type="text" id="pv-base" value="${p.api_base}">
+            </div>
+            <div class="form-group">
+              <label>模型名称</label>
+              <input type="text" id="pv-model" value="${p.model_name}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>API Key ${p.api_key_set ? '(已设置，留空则不修改)' : '(未设置)'}</label>
+            <input type="password" id="pv-key" placeholder="${p.api_key_set ? '留空不修改' : 'sk-...'}">
+          </div>
+          <div class="form-row three">
+            <div class="form-group">
+              <label>最大Token数</label>
+              <input type="number" id="pv-tokens" value="${p.max_tokens}">
+            </div>
+            <div class="form-group">
+              <label>Temperature</label>
+              <input type="number" id="pv-temp" value="${p.temperature}" step="0.1" min="0" max="2">
+            </div>
+            <div class="form-group">
+              <label>优先级</label>
+              <input type="number" id="pv-priority" value="${p.priority}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label><input type="checkbox" id="pv-active" ${p.is_active ? 'checked' : ''}> 启用此供应商</label>
+          </div>
+          <div class="modal-actions">
+            <button class="btn" onclick="document.getElementById('provider-modal').remove()">取消</button>
+            <button class="btn btn-primary" onclick="saveEditProvider(${id})">保存</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function saveEditProvider(id) {
+  const data = {
+    name: document.getElementById('pv-name').value.trim(),
+    api_base: document.getElementById('pv-base').value.trim(),
+    model_name: document.getElementById('pv-model').value.trim(),
+    max_tokens: parseInt(document.getElementById('pv-tokens').value) || 4096,
+    temperature: parseFloat(document.getElementById('pv-temp').value) || 0.7,
+    priority: parseInt(document.getElementById('pv-priority').value) || 0,
+    is_active: document.getElementById('pv-active').checked,
+  };
+  const key = document.getElementById('pv-key').value.trim();
+  if (key) data.api_key = key;
+  try {
+    await api(`/api/ai/providers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    showToast('供应商已更新');
+    document.getElementById('provider-modal')?.remove();
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteProvider(id, name) {
+  if (!confirm(`确定删除供应商"${name}"吗？`)) return;
+  try {
+    await api(`/api/ai/providers/${id}`, { method: 'DELETE' });
+    showToast('已删除');
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function testProvider(id) {
+  showToast('正在测试连接...');
+  try {
+    const result = await api(`/api/ai/providers/${id}/test`, { method: 'POST' });
+    if (result.success) {
+      showToast(`连接成功: ${result.message}`);
+    } else {
+      showToast(`连接失败: ${result.message}`, true);
+    }
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+// ── AI分析页面 ──────────────────────────────────────────────
+
+let selectedStockIds = new Set();
+let analysisPollTimer = null;
+
+async function loadAIAnalysis() {
+  const container = document.getElementById('page-ai-analysis');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const [stocks, tasks] = await Promise.all([
+      api('/api/stocks/quotes'),
+      api('/api/ai/analysis/tasks').catch(() => []),
+    ]);
+
+    const stockList = stocks || [];
+    const taskList = tasks || [];
+
+    // 当前运行中的任务
+    const activeTasks = taskList.filter(t => t.status === 'pending' || t.status === 'running');
+    const recentTasks = taskList.slice(0, 10);
+
+    const activeTaskHtml = activeTasks.map(t => {
+      const pct = t.total_stocks > 0 ? Math.round((t.completed_stocks + t.failed_stocks) / t.total_stocks * 100) : 0;
+      return `
+        <div class="card" style="margin-bottom:1rem;border-color:var(--accent3);">
+          <div class="card-header" style="background:rgba(59,130,246,0.08);">
+            <h3>
+              <span class="task-status-badge running">运行中</span>
+              分析任务 #${t.id}
+            </h3>
+            <button class="btn btn-danger btn-sm" onclick="cancelTask(${t.id})">取消任务</button>
+          </div>
+          <div style="padding:1rem 1.25rem;">
+            <div class="task-progress">
+              <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                <span>进度: ${t.completed_stocks + t.failed_stocks} / ${t.total_stocks}</span>
+                <span>${t.current_stock ? '当前: ' + t.current_stock : ''}</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:${pct}%"></div>
+              </div>
+              <div style="font-size:0.78rem;color:var(--muted);">
+                成功 ${t.completed_stocks} · 失败 ${t.failed_stocks}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>AI分析</h2>
+        <p>使用Serenity产业链投研方法对追踪股票进行深度分析</p>
+      </div>
+
+      ${activeTaskHtml}
+
+      <div class="card">
+        <div class="card-header">
+          <h3>选择股票进行分析</h3>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-sm" onclick="selectAllStocks()">全选</button>
+            <button class="btn btn-sm" onclick="deselectAllStocks()">取消全选</button>
+            <button class="btn btn-primary btn-sm" onclick="triggerSelectiveAnalysis()">
+              分析选中股票
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="triggerBatchAnalysis()" style="background:var(--accent2);border-color:var(--accent2);">
+              分析全部股票
+            </button>
+          </div>
+        </div>
+        <div style="padding:1rem 1.25rem;">
+          ${stockList.length > 0 ? `
+            <div class="stock-select-grid">
+              ${stockList.map(s => `
+                <div class="stock-select-card" data-stock-id="${s.id}" onclick="toggleStockSelect(${s.id}, this)">
+                  <div class="stock-select-name">${s.name}</div>
+                  <div class="stock-select-code">${s.code}</div>
+                  <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">${s.score ? '评分 ' + s.score.toFixed(1) : '未评分'}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : '<div class="empty"><p>暂无追踪中的股票，请先导入选股报告</p></div>'}
+        </div>
+      </div>
+
+      ${recentTasks.length > 0 ? `
+        <div class="card">
+          <div class="card-header"><h3>最近任务</h3></div>
+          <div>
+            ${recentTasks.map(t => `
+              <div class="task-item">
+                <div class="task-info">
+                  <h4>任务 #${t.id} <span class="task-status-badge ${t.status}">${{pending:'等待中',running:'运行中',completed:'已完成',failed:'失败',cancelled:'已取消'}[t.status] || t.status}</span></h4>
+                  <span>${t.triggered_by} · ${t.total_stocks}只股票 · 完成${t.completed_stocks} · 失败${t.failed_stocks}</span>
+                  ${t.current_stock ? `<span style="color:var(--accent3);"> · 当前: ${t.current_stock}</span>` : ''}
+                  ${t.error_message ? `<br><span style="color:var(--red);font-size:0.72rem;">${t.error_message}</span>` : ''}
+                </div>
+                <div class="task-meta">
+                  <span style="font-size:0.75rem;color:var(--muted);">${t.started_at ? new Date(t.started_at).toLocaleString('zh-CN') : ''}</span>
+                  ${t.status === 'running' || t.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelTask(${t.id})">取消</button>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    // 如果有运行中的任务，启动轮询
+    if (activeTasks.length > 0) {
+      startAnalysisPolling();
+    }
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function toggleStockSelect(id, el) {
+  if (selectedStockIds.has(id)) {
+    selectedStockIds.delete(id);
+    el.classList.remove('selected');
+  } else {
+    selectedStockIds.add(id);
+    el.classList.add('selected');
+  }
+}
+
+function selectAllStocks() {
+  document.querySelectorAll('.stock-select-card').forEach(card => {
+    const id = parseInt(card.dataset.stockId);
+    selectedStockIds.add(id);
+    card.classList.add('selected');
+  });
+}
+
+function deselectAllStocks() {
+  selectedStockIds.clear();
+  document.querySelectorAll('.stock-select-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+}
+
+async function triggerBatchAnalysis() {
+  if (!confirm('确定对所有活跃股票执行AI分析吗？这可能需要较长时间。')) return;
+  try {
+    const result = await api('/api/ai/analysis/batch', { method: 'POST' });
+    showToast(result.message);
+    selectedStockIds.clear();
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function triggerSelectiveAnalysis() {
+  if (selectedStockIds.size === 0) { showToast('请先选择要分析的股票', true); return; }
+  try {
+    const result = await api('/api/ai/analysis/selective', {
+      method: 'POST',
+      body: JSON.stringify(Array.from(selectedStockIds)),
+    });
+    showToast(result.message);
+    selectedStockIds.clear();
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function cancelTask(taskId) {
+  if (!confirm('确定取消此任务吗？')) return;
+  try {
+    await api(`/api/ai/analysis/tasks/${taskId}/cancel`, { method: 'POST' });
+    showToast('任务已取消');
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+function startAnalysisPolling() {
+  if (analysisPollTimer) clearInterval(analysisPollTimer);
+  analysisPollTimer = setInterval(async () => {
+    try {
+      const tasks = await api('/api/ai/analysis/tasks') || [];
+      const activeTasks = tasks.filter(t => t.status === 'pending' || t.status === 'running');
+      if (activeTasks.length === 0) {
+        clearInterval(analysisPollTimer);
+        analysisPollTimer = null;
+        showToast('分析任务已完成');
+        loadAIAnalysis();
+        return;
+      }
+      // 更新进度显示
+      const t = activeTasks[0];
+      const pct = t.total_stocks > 0 ? Math.round((t.completed_stocks + t.failed_stocks) / t.total_stocks * 100) : 0;
+      const bar = document.querySelector('.progress-bar-fill');
+      const progressText = document.querySelector('.task-progress div div span:first-child');
+      const currentText = document.querySelector('.task-progress div div span:last-child');
+      if (bar) bar.style.width = pct + '%';
+      if (progressText) progressText.textContent = `进度: ${t.completed_stocks + t.failed_stocks} / ${t.total_stocks}`;
+      if (currentText) currentText.textContent = t.current_stock ? '当前: ' + t.current_stock : '';
+    } catch (e) { console.error(e); }
+  }, 3000);
+}
+
+// ── 分析历史页面 ──────────────────────────────────────────────
+
+async function loadAIHistory() {
+  const container = document.getElementById('page-ai-history');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const history = await api('/api/ai/analysis/history') || [];
+
+    if (!Array.isArray(history) || history.length === 0) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>分析历史</h2>
+          <p>查看所有AI分析记录和修改历史</p>
+        </div>
+        <div class="empty"><div class="icon">📊</div><p>暂无分析记录</p><p style="font-size:0.8rem;margin-top:0.5rem;">请先在"AI分析"页面对股票执行分析</p></div>
+      `;
+      return;
+    }
+
+    // 按股票分组
+    const stockMap = {};
+    history.forEach(a => {
+      const key = `${a.stock_code}_${a.stock_name}`;
+      if (!stockMap[key]) stockMap[key] = { stock_code: a.stock_code, stock_name: a.stock_name, stock_id: a.stock_id, analyses: [] };
+      stockMap[key].analyses.push(a);
+    });
+
+    const stockGroups = Object.values(stockMap);
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>分析历史</h2>
+        <p>查看所有AI分析记录和修改历史（共 ${history.length} 条记录）</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>按股票查看</h3></div>
+        <div>
+          ${stockGroups.map(g => `
+            <div class="analysis-item" onclick="loadStockAnalysisDetail(${g.stock_id})">
+              <div class="analysis-item-header">
+                <div class="analysis-item-title">
+                  ${g.stock_name} (${g.stock_code})
+                </div>
+                <div style="font-size:0.82rem;color:var(--accent);">${g.analyses.length} 次分析</div>
+              </div>
+              <div class="analysis-item-meta">
+                <span>最新: ${new Date(g.analyses[0].created_at).toLocaleString('zh-CN')}</span>
+                <span>评分: ${g.analyses[0].score || '-'}</span>
+                <span>模型: ${g.analyses[0].model_name || '-'}</span>
+                <span>版本: v${g.analyses[0].version}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+async function loadStockAnalysisDetail(stockId) {
+  const container = document.getElementById('page-ai-history');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const data = await api(`/api/ai/analysis/stock/${stockId}`);
+    const stock = data.stock;
+    const analyses = data.analyses;
+
+    if (analyses.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="icon">📊</div><p>暂无分析记录</p></div>`;
+      return;
+    }
+
+    // 版本切换标签
+    const versionTabs = analyses.map((a, i) => `
+      <div class="history-tab ${i === 0 ? 'active' : ''}" onclick="switchAnalysisVersion(this, ${a.id})" data-analysis-id="${a.id}">
+        v${a.version} ${a.is_current ? '(当前)' : ''}
+      </div>
+    `).join('');
+
+    // 初始显示第一个（最新）
+    const current = analyses[0];
+
+    container.innerHTML = `
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="btn" onclick="loadAIHistory()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            返回
+          </button>
+          <div>
+            <h2>${stock.name} (${stock.code})</h2>
+            <p>分析历史 · 共 ${analyses.length} 个版本</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-tabs">${versionTabs}</div>
+
+      <div id="analysis-detail-content">
+        ${renderAnalysisDetail(current)}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+// 缓存分析数据用于版本切换
+let _stockAnalysesCache = {};
+
+async function switchAnalysisVersion(btn, analysisId) {
+  document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  const detailContainer = document.getElementById('analysis-detail-content');
+  if (!detailContainer) return;
+
+  detailContainer.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const analysis = await api(`/api/ai/analysis/${analysisId}`);
+    detailContainer.innerHTML = renderAnalysisDetail(analysis);
+  } catch (e) {
+    detailContainer.innerHTML = `<div class="empty"><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function renderAnalysisDetail(a) {
+  const scoreBar = a.score ? `
+    <div class="score-bar">
+      <div class="bar-bg">
+        <div class="bar-fill ${a.score >= 7 ? 'high' : a.score >= 5 ? 'mid' : 'low'}" style="width:${(a.score/10)*100}%"></div>
+      </div>
+      <span class="score-val">${a.score.toFixed(1)}/10</span>
+    </div>
+  ` : '';
+
+  const sections = [
+    { title: '买入策略', content: `买入区间: ${a.buy_price_range || '-'}<br>策略: ${a.buy_strategy || '-'}` },
+    { title: '卖出与止损', content: `目标价: ${a.target_price || '-'}<br>止损价: ${a.stop_loss_price || '-'}<br>${a.target_desc || ''}` },
+    { title: '持有建议', content: `持有时间: ${a.holding_period || '-'}<br>预期收益: ${a.expected_return || '-'}` },
+    { title: '上涨原因分析', content: Array.isArray(a.rise_reasons) ? a.rise_reasons.join('<br>') : (a.rise_reasons || '-') },
+    { title: '行业技术关联', content: a.industry_tech || '-' },
+    { title: '技术路线物理极限', content: a.physics_limits || '-' },
+    { title: '替代方案威胁', content: a.substitution_threat || '-' },
+    { title: '供需测算偏差', content: a.supply_demand_bias || '-' },
+    { title: '地缘政策风险', content: a.geopolitical_risk || '-' },
+    { title: '产能扩张可行性', content: a.capacity_feasibility || '-' },
+    { title: '需求可持续性', content: a.demand_sustainability || '-' },
+    { title: '估值合理性', content: a.valuation_rationality || '-' },
+  ];
+
+  const risks = Array.isArray(a.risks) && a.risks.length > 0
+    ? `<ul class="risk-list">${a.risks.map(r => `<li class="${r.level === 'medium' ? 'medium' : ''}">${r.text}</li>`).join('')}</ul>`
+    : '<p style="color:var(--muted);">暂无风险信息</p>';
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <h3>分析概要</h3>
+        <span style="font-size:0.75rem;color:var(--muted);">模型: ${a.model_name || '-'} · 版本 v${a.version} · ${new Date(a.created_at).toLocaleString('zh-CN')}</span>
+      </div>
+      <div style="padding:1rem 1.25rem;">
+        ${scoreBar}
+        ${a.score_comment ? `<p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">${a.score_comment}</p>` : ''}
+        ${a.summary ? `<div style="margin-top:1rem;padding:0.75rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--accent);font-size:0.85rem;line-height:1.7;">${a.summary}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Serenity深度分析报告</h3></div>
+      <div style="padding:1rem 1.25rem;">
+        ${sections.map(s => `<div class="analysis-detail-section"><h4>${s.title}</h4><p>${s.content}</p></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>风险提示</h3></div>
+      <div style="padding:1rem 1.25rem;">${risks}</div>
+    </div>
+  `;
+}
+
+async function triggerSingleStockAnalysis(stockId) {
+  if (!confirm('确定对此股票执行AI分析吗？')) return;
+  try {
+    const result = await api(`/api/ai/analysis/single/${stockId}`, { method: 'POST' });
+    showToast(result.message);
+    // 跳转到AI分析页面查看进度
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('[data-page="ai-analysis"]')?.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-ai-analysis').classList.add('active');
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+function viewStockAnalysisHistory(stockId) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('[data-page="ai-history"]')?.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-ai-history').classList.add('active');
+  loadStockAnalysisDetail(stockId);
+}
+
+// Init
+initTheme();
+if (token) {
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    showApp();
+  } else {
+    logout();
+  }
+} else {
+  document.getElementById('login-page').style.display = 'flex';
+}
+</script>
+</body>
+</html>

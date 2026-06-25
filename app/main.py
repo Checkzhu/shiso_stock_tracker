@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database import init_db, SessionLocal
 from app.api import router
 from app.auth import seed_default_admin
+import app.models  # 确保所有模型被加载以创建表
 
 app = FastAPI(title="A股选股追踪系统", version="1.0.0")
 

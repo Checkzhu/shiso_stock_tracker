@@ -1,6 +1,6 @@
 """股票行情查询服务 - 使用东方财富API获取A股实时行情"""
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from curl_cffi import requests as cffi_requests
 
@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 # 东方财富实时行情批量API
 _EASTMONEY_QUOTE_URL = "https://push2.eastmoney.com/api/qt/ulist.np/get"
+# 东方财富K线API
+_EASTMONEY_KLINE_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 _COMMON_PARAMS = {
     "fltt": "2",
     "ut": "fa5fd1943c7b386f172d6893dbfba10b",
@@ -102,3 +104,82 @@ def get_multi_stock_quotes(stock_codes: list[tuple[str, str] | str]) -> dict[str
     except Exception as e:
         logger.warning(f"批量获取行情失败: {e}")
         return {}
+
+
+def get_history_price(exchange: str, code: str, days: int) -> float | None:
+    """获取N天前的收盘价
+
+    通过东方财富K线接口获取最近N+10个交易日的K线数据，
+    返回距离今天N个自然日左右最近的交易日收盘价。
+
+    Args:
+        exchange: SZ / SH
+        code: 6位数字代码
+        days: 回溯天数
+    Returns:
+        N天前最近一个交易日的收盘价，获取失败返回 None
+    """
+    market = _exchange_to_market(exchange)
+    secid = f"{market}.{code}"
+
+    klt = 101  # 日K
+    fqt = 1    # 前复权
+
+    # 取足够多的K线（交易日比自然日少，加10根保险）
+    params = {
+        "secid": secid,
+        "ut": "fa5fd1943c7b386f172d6893dbfba10b",
+        "fields1": "f1,f2,f3,f4,f5",
+        "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+        "klt": klt,
+        "fqt": fqt,
+        "end": "20991231",
+        "lmt": days + 30,
+    }
+
+    try:
+        resp = cffi_requests.get(
+            _EASTMONEY_KLINE_URL, params=params, impersonate="chrome", timeout=10
+        )
+        data = resp.json()
+        klines = data.get("data", {}).get("klines", [])
+        if not klines:
+            return None
+
+        # K线格式: "日期,开盘,收盘,最高,最低,成交量,成交额,振幅"
+        # 找到日期 <= today - days 的最近一根K线
+        target_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        best = None
+        for line in klines:
+            parts = line.split(",")
+            if len(parts) < 3:
+                continue
+            kline_date = parts[0]
+            if kline_date <= target_date:
+                best = parts
+            else:
+                break
+        if not best:
+            # 取最早的
+            best = klines[0].split(",")
+        return float(best[2])
+    except Exception as e:
+        logger.warning(f"获取{code}历史K线失败: {e}")
+        return None
+
+
+def get_multi_history_prices(stock_codes: list[tuple[str, str]], days: int) -> dict[str, float]:
+    """批量获取多只股票N天前的收盘价
+
+    Args:
+        stock_codes: [(exchange, code), ...] 列表
+        days: 回溯天数
+    Returns:
+        {code: price} 字典
+    """
+    result = {}
+    for exchange, code in stock_codes:
+        price = get_history_price(exchange, code, days)
+        if price is not None:
+            result[code] = price
+    return result

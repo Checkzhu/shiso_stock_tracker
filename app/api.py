@@ -1,16 +1,31 @@
 """API路由"""
 import os
-from datetime import datetime
+import threading
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 
 from .database import get_db
-from .models import Report, TrackedStock, PriceRecord, User
+from .models import Report, TrackedStock, PriceRecord, User, AIProvider, AnalysisTask, StockAnalysis, InviteCode
 from .parser import parse_report, scan_reports_directory
-from .stock_service import get_stock_realtime_quote, get_multi_stock_quotes
+from .stock_service import get_stock_realtime_quote, get_multi_stock_quotes, get_multi_history_prices, get_history_price as _get_history_price
+from .ai_service import PROVIDER_DEFAULTS, PROVIDER_LABELS, test_provider
+from .serenity_engine import analyze_single_stock
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_history_price_safe(exchange: str, code: str, days: int) -> float | None:
+    """安全调用历史K线接口的包装函数"""
+    try:
+        return _get_history_price(exchange, code, days)
+    except Exception as e:
+        logger.debug(f"获取{code}历史价格失败: {e}")
+        return None
 from .config import SOURCE_DIR, REPORTS_DIR
 from .auth import (
     verify_password, create_access_token, get_current_user,
@@ -31,6 +46,7 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     nickname: str | None = None
+    invite_code: str | None = None  # 邀请码（选填）
 
 
 class UserResponse(BaseModel):
@@ -67,15 +83,33 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="用户名已存在")
 
+    # 处理邀请码
+    role = "viewer"
+    invite_code_id = None
+    if req.invite_code:
+        invite = db.query(InviteCode).filter(InviteCode.code == req.invite_code).first()
+        if not invite:
+            raise HTTPException(status_code=400, detail="邀请码无效")
+        if not invite.is_active:
+            raise HTTPException(status_code=400, detail="邀请码已禁用")
+        if invite.expires_at and invite.expires_at < datetime.now():
+            raise HTTPException(status_code=400, detail="邀请码已过期")
+        if invite.max_uses > 0 and invite.used_count >= invite.max_uses:
+            raise HTTPException(status_code=400, detail="邀请码已用完")
+        role = invite.role
+        invite_code_id = invite.id
+        invite.used_count += 1
+
     user = User(
         username=req.username,
         hashed_password=get_password_hash(req.password),
         nickname=req.nickname or req.username,
-        role="viewer",
+        role=role,
+        invite_code_id=invite_code_id,
     )
     db.add(user)
     db.commit()
-    return {"message": "注册成功，请联系管理员升级权限"}
+    return {"message": f"注册成功，您的角色为 {role}" if role != "viewer" else "注册成功，请联系管理员升级权限"}
 
 
 @router.get("/api/auth/me")
@@ -92,7 +126,7 @@ def get_me(user: User = Depends(get_current_user)):
 
 @router.get("/api/users")
 def list_users(user: User = Depends(require_admin), db: Session = Depends(get_db)):
-    users = db.query(User).all()
+    users = db.query(User).order_by(User.created_at.desc()).all()
     return [
         {
             "id": u.id,
@@ -100,9 +134,136 @@ def list_users(user: User = Depends(require_admin), db: Session = Depends(get_db
             "nickname": u.nickname,
             "role": u.role,
             "created_at": u.created_at.isoformat() if u.created_at else None,
+            "last_login": u.last_login.isoformat() if u.last_login else None,
+            "invite_code_id": u.invite_code_id,
+            "invite_code": u.invite_code_used.code if u.invite_code_used else None,
         }
         for u in users
     ]
+
+
+@router.delete("/api/users/{user_id}")
+def delete_user(user_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if target.id == admin.id:
+        raise HTTPException(status_code=400, detail="不能删除自己")
+    if target.role == "admin":
+        # 检查是否是最后一个管理员
+        admin_count = db.query(User).filter(User.role == "admin").count()
+        if admin_count <= 1:
+            raise HTTPException(status_code=400, detail="不能删除最后一个管理员")
+    db.delete(target)
+    db.commit()
+    return {"message": f"已删除用户 {target.username}"}
+
+
+# ── 邀请码管理（仅管理员）─────────────────────────────────
+
+import secrets
+import string
+
+
+class CreateInviteCodeRequest(BaseModel):
+    role: str = "viewer"  # 使用邀请码注册的用户默认角色
+    max_uses: int = 0  # 最大使用次数，0表示无限
+    expires_days: int | None = None  # 过期天数，null表示永不过期
+    note: str | None = None  # 备注
+
+
+@router.post("/api/invite-codes")
+def create_invite_code(req: CreateInviteCodeRequest, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    if req.role not in ("admin", "invited", "viewer"):
+        raise HTTPException(status_code=400, detail="无效的角色")
+
+    # 生成8位随机邀请码
+    code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+
+    expires_at = None
+    if req.expires_days:
+        expires_at = datetime.now() + timedelta(days=req.expires_days)
+
+    invite = InviteCode(
+        code=code,
+        role=req.role,
+        max_uses=req.max_uses,
+        expires_at=expires_at,
+        created_by=admin.id,
+        note=req.note,
+    )
+    db.add(invite)
+    db.commit()
+    db.refresh(invite)
+    return {
+        "message": "邀请码已生成",
+        "id": invite.id,
+        "code": invite.code,
+        "role": invite.role,
+        "max_uses": invite.max_uses,
+        "expires_at": invite.expires_at.isoformat() if invite.expires_at else None,
+        "note": invite.note,
+    }
+
+
+@router.get("/api/invite-codes")
+def list_invite_codes(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    codes = db.query(InviteCode).order_by(InviteCode.created_at.desc()).all()
+    return [
+        {
+            "id": c.id,
+            "code": c.code,
+            "role": c.role,
+            "max_uses": c.max_uses,
+            "used_count": c.used_count,
+            "expires_at": c.expires_at.isoformat() if c.expires_at else None,
+            "is_active": c.is_active,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "created_by": c.creator.username if c.creator else None,
+            "note": c.note,
+            "remaining": c.max_uses - c.used_count if c.max_uses > 0 else "无限",
+            "is_expired": c.expires_at and c.expires_at < datetime.now(),
+        }
+        for c in codes
+    ]
+
+
+@router.put("/api/invite-codes/{code_id}")
+def update_invite_code(code_id: int, req: CreateInviteCodeRequest, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    invite = db.query(InviteCode).filter(InviteCode.id == code_id).first()
+    if not invite:
+        raise HTTPException(status_code=404, detail="邀请码不存在")
+    if req.role not in ("admin", "invited", "viewer"):
+        raise HTTPException(status_code=400, detail="无效的角色")
+    invite.role = req.role
+    invite.max_uses = req.max_uses
+    if req.expires_days:
+        invite.expires_at = datetime.now() + timedelta(days=req.expires_days)
+    else:
+        invite.expires_at = None
+    invite.note = req.note
+    db.commit()
+    return {"message": "邀请码已更新"}
+
+
+@router.put("/api/invite-codes/{code_id}/toggle")
+def toggle_invite_code(code_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    invite = db.query(InviteCode).filter(InviteCode.id == code_id).first()
+    if not invite:
+        raise HTTPException(status_code=404, detail="邀请码不存在")
+    invite.is_active = not invite.is_active
+    db.commit()
+    return {"message": f"邀请码已{'启用' if invite.is_active else '禁用'}", "is_active": invite.is_active}
+
+
+@router.delete("/api/invite-codes/{code_id}")
+def delete_invite_code(code_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    invite = db.query(InviteCode).filter(InviteCode.id == code_id).first()
+    if not invite:
+        raise HTTPException(status_code=404, detail="邀请码不存在")
+    db.delete(invite)
+    db.commit()
+    return {"message": "邀请码已删除"}
 
 
 class UpdateUserRole(BaseModel):
@@ -220,12 +381,28 @@ def _save_report_to_db(parsed: dict, db: Session) -> dict:
     db.add(report)
     db.flush()
 
+    # 批量获取当前行情作为添加价格
+    stock_tuples = []
+    for s in parsed["stocks"]:
+        code = s["code"][2:] if len(s["code"]) > 6 else s["code"]
+        exchange = s["exchange"]
+        stock_tuples.append((exchange, code))
+
+    quotes = get_multi_stock_quotes(stock_tuples) if stock_tuples else {}
+
     for s in parsed["stocks"]:
         existing_stock = db.query(TrackedStock).filter(TrackedStock.code == s["code"]).first()
+
+        # 获取当前价格作为添加价格
+        code_short = s["code"][2:] if len(s["code"]) > 6 else s["code"]
+        quote = quotes.get(code_short, {})
+        current_price = quote.get("current_price")
 
         if existing_stock:
             existing_stock.is_active = True
             existing_stock.report_id = report.id
+            if current_price:
+                existing_stock.added_price = current_price
             _update_stock_fields(existing_stock, s)
         else:
             stock = TrackedStock(
@@ -234,6 +411,7 @@ def _save_report_to_db(parsed: dict, db: Session) -> dict:
                 exchange=s["exchange"],
                 sector=s["sector"],
                 report_id=report.id,
+                added_price=current_price,
                 metrics=s.get("metrics"),
                 buy_price_range=s.get("buy_price_range"),
                 buy_strategy=s.get("buy_strategy"),
@@ -247,6 +425,8 @@ def _save_report_to_db(parsed: dict, db: Session) -> dict:
                 risks=s.get("risks"),
                 chain_flow=s.get("chain_flow"),
                 analysis_sections=s.get("analysis_sections"),
+                serenity_scores=s.get("serenity_scores"),
+                depth_analysis=s.get("depth_analysis"),
             )
             db.add(stock)
 
@@ -275,6 +455,8 @@ def _update_stock_fields(stock, data):
     stock.risks = data.get("risks")
     stock.chain_flow = data.get("chain_flow")
     stock.analysis_sections = data.get("analysis_sections")
+    stock.serenity_scores = data.get("serenity_scores")
+    stock.depth_analysis = data.get("depth_analysis")
 
 
 # ── 股票追踪 ──────────────────────────────────────────────
@@ -308,6 +490,8 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
         "risks": stock.risks or [],
         "chain_flow": stock.chain_flow or [],
         "analysis_sections": stock.analysis_sections or [],
+        "serenity_scores": stock.serenity_scores or {},
+        "depth_analysis": stock.depth_analysis or {},
     }
 
 
@@ -342,24 +526,11 @@ def get_tracked_quotes(db: Session = Depends(get_db)):
         else:
             record["added_days"] = None
 
-        # 计算各时间段收益
-        now = datetime.now()
-        from datetime import timedelta
-        periods = {
-            "return_1w": now - timedelta(days=7),
-            "return_1m": now - timedelta(days=30),
-            "return_3m": now - timedelta(days=90),
-            "return_1y": now - timedelta(days=365),
-        }
-        for key, since in periods.items():
-            old_record = (
-                db.query(PriceRecord)
-                .filter(PriceRecord.stock_id == s.id, PriceRecord.recorded_at >= since)
-                .order_by(PriceRecord.recorded_at.asc())
-                .first()
-            )
-            if old_record and old_record.current_price and current_price:
-                record[key] = round((current_price - old_record.current_price) / old_record.current_price * 100, 2)
+        # 计算各时间段收益（通过东方财富K线接口获取历史价格）
+        for key, days in [("return_1w", 7), ("return_1m", 30), ("return_3m", 90), ("return_1y", 365)]:
+            old_price = get_history_price_safe(s.exchange, code, days)
+            if old_price and current_price:
+                record[key] = round((current_price - old_price) / old_price * 100, 2)
             else:
                 record[key] = None
 
@@ -499,3 +670,422 @@ def dashboard_stats(db: Session = Depends(get_db)):
         "latest_report": latest_report_info,
         "avg_score": avg_score,
     }
+
+
+# ── AI模型管理 ──────────────────────────────────────────────
+
+class CreateProviderRequest(BaseModel):
+    name: str
+    provider_type: str
+    api_key: str | None = None
+    api_base: str = ""
+    model_name: str = ""
+    max_tokens: int = 4096
+    temperature: float = 0.7
+    priority: int = 0
+    is_active: bool = True
+
+
+class UpdateProviderRequest(BaseModel):
+    name: str | None = None
+    api_key: str | None = None
+    api_base: str | None = None
+    model_name: str | None = None
+    max_tokens: int | None = None
+    temperature: float | None = None
+    priority: int | None = None
+    is_active: bool | None = None
+
+
+@router.get("/api/ai/providers/defaults")
+def get_provider_defaults():
+    """获取支持的供应商类型及其默认配置"""
+    return {
+        "types": PROVIDER_LABELS,
+        "defaults": PROVIDER_DEFAULTS,
+    }
+
+
+@router.get("/api/ai/providers")
+def list_providers(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    providers = db.query(AIProvider).order_by(AIProvider.priority.desc(), AIProvider.id).all()
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "provider_type": p.provider_type,
+            "api_key": p.api_key[:8] + "***" if p.api_key and len(p.api_key) > 8 else ("***" if p.api_key else ""),
+            "api_key_set": bool(p.api_key),
+            "api_base": p.api_base,
+            "model_name": p.model_name,
+            "max_tokens": p.max_tokens,
+            "temperature": p.temperature,
+            "priority": p.priority,
+            "is_active": p.is_active,
+            "is_healthy": p.is_healthy,
+            "last_error": p.last_error,
+            "last_used_at": p.last_used_at.isoformat() if p.last_used_at else None,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        }
+        for p in providers
+    ]
+
+
+@router.post("/api/ai/providers")
+def create_provider(req: CreateProviderRequest, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    if req.provider_type not in PROVIDER_DEFAULTS:
+        raise HTTPException(status_code=400, detail=f"不支持的供应商类型: {req.provider_type}")
+
+    defaults = PROVIDER_DEFAULTS[req.provider_type]
+    api_base = req.api_base or defaults["api_base"]
+    model_name = req.model_name or defaults["model"]
+
+    provider = AIProvider(
+        name=req.name,
+        provider_type=req.provider_type,
+        api_key=req.api_key,
+        api_base=api_base,
+        model_name=model_name,
+        max_tokens=req.max_tokens,
+        temperature=req.temperature,
+        priority=req.priority,
+        is_active=req.is_active,
+    )
+    db.add(provider)
+    db.commit()
+    db.refresh(provider)
+    return {"message": f"已添加 {provider.name}", "id": provider.id}
+
+
+@router.put("/api/ai/providers/{provider_id}")
+def update_provider(provider_id: int, req: UpdateProviderRequest, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    provider = db.query(AIProvider).filter(AIProvider.id == provider_id).first()
+    if not provider:
+        raise HTTPException(status_code=404, detail="供应商不存在")
+
+    for field, value in req.model_dump(exclude_unset=True).items():
+        setattr(provider, field, value)
+    provider.updated_at = datetime.now()
+    db.commit()
+    return {"message": f"已更新 {provider.name}"}
+
+
+@router.delete("/api/ai/providers/{provider_id}")
+def delete_provider(provider_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    provider = db.query(AIProvider).filter(AIProvider.id == provider_id).first()
+    if not provider:
+        raise HTTPException(status_code=404, detail="供应商不存在")
+    db.delete(provider)
+    db.commit()
+    return {"message": f"已删除 {provider.name}"}
+
+
+@router.post("/api/ai/providers/{provider_id}/test")
+def test_provider_connection(provider_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    provider = db.query(AIProvider).filter(AIProvider.id == provider_id).first()
+    if not provider:
+        raise HTTPException(status_code=404, detail="供应商不存在")
+
+    result = test_provider(provider)
+    if result["success"]:
+        provider.is_healthy = True
+        provider.last_error = None
+    else:
+        provider.is_healthy = False
+        provider.last_error = result["message"][:500]
+    db.commit()
+    return result
+
+
+# ── AI分析任务 ──────────────────────────────────────────────
+
+def _run_batch_analysis(task_id: int, stock_ids: list[int] = None):
+    """后台批量分析任务（在独立线程中运行）"""
+    from .database import SessionLocal
+    db = SessionLocal()
+    try:
+        task = db.query(AnalysisTask).filter(AnalysisTask.id == task_id).first()
+        if not task:
+            return
+
+        task.status = "running"
+        task.started_at = datetime.now()
+        db.commit()
+
+        # 获取要分析的股票
+        if stock_ids:
+            stocks = db.query(TrackedStock).filter(TrackedStock.id.in_(stock_ids), TrackedStock.is_active == True).all()
+        else:
+            stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
+
+        task.total_stocks = len(stocks)
+        db.commit()
+
+        for stock in stocks:
+            # 检查任务是否被取消
+            db.refresh(task)
+            if task.status == "cancelled":
+                break
+
+            task.current_stock = f"{stock.name}({stock.code})"
+            db.commit()
+
+            try:
+                analyze_single_stock(db, stock, task_id=task.id)
+                task.completed_stocks += 1
+            except Exception as e:
+                logger.error(f"分析 {stock.name} 失败: {e}")
+                task.failed_stocks += 1
+            finally:
+                db.commit()
+
+        task.status = "completed" if task.status != "cancelled" else "cancelled"
+        task.completed_at = datetime.now()
+        task.current_stock = None
+        db.commit()
+
+    except Exception as e:
+        logger.error(f"批量分析任务失败: {e}")
+        task = db.query(AnalysisTask).filter(AnalysisTask.id == task_id).first()
+        if task:
+            task.status = "failed"
+            task.error_message = str(e)[:1000]
+            task.completed_at = datetime.now()
+            db.commit()
+    finally:
+        db.close()
+
+
+@router.post("/api/ai/analysis/batch")
+def trigger_batch_analysis(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """触发批量分析（分析所有活跃股票）"""
+    stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
+    if not stocks:
+        raise HTTPException(status_code=400, detail="没有需要分析的股票")
+
+    providers = db.query(AIProvider).filter(AIProvider.is_active == True).first()
+    if not providers:
+        raise HTTPException(status_code=400, detail="没有配置可用的AI模型供应商")
+
+    task = AnalysisTask(
+        task_type="batch",
+        status="pending",
+        total_stocks=len(stocks),
+        triggered_by=admin.username,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+
+    # 在后台线程中运行分析
+    thread = threading.Thread(target=_run_batch_analysis, args=(task.id,), daemon=True)
+    thread.start()
+
+    return {
+        "message": f"已触发批量分析，共 {len(stocks)} 只股票",
+        "task_id": task.id,
+        "total_stocks": len(stocks),
+    }
+
+
+@router.post("/api/ai/analysis/single/{stock_id}")
+def trigger_single_analysis(stock_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """触发单只股票分析"""
+    stock = db.query(TrackedStock).filter(TrackedStock.id == stock_id, TrackedStock.is_active == True).first()
+    if not stock:
+        raise HTTPException(status_code=404, detail="股票不存在")
+
+    providers = db.query(AIProvider).filter(AIProvider.is_active == True).first()
+    if not providers:
+        raise HTTPException(status_code=400, detail="没有配置可用的AI模型供应商")
+
+    task = AnalysisTask(
+        task_type="single",
+        status="pending",
+        total_stocks=1,
+        triggered_by=admin.username,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+
+    thread = threading.Thread(
+        target=_run_batch_analysis, args=(task.id, [stock_id]), daemon=True
+    )
+    thread.start()
+
+    return {
+        "message": f"已触发对 {stock.name} 的分析",
+        "task_id": task.id,
+    }
+
+
+@router.post("/api/ai/analysis/selective")
+def trigger_selective_analysis(stock_ids: list[int], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """触发选择性批量分析"""
+    if not stock_ids:
+        raise HTTPException(status_code=400, detail="未选择任何股票")
+
+    stocks = db.query(TrackedStock).filter(TrackedStock.id.in_(stock_ids), TrackedStock.is_active == True).all()
+    if not stocks:
+        raise HTTPException(status_code=400, detail="所选股票不存在")
+
+    providers = db.query(AIProvider).filter(AIProvider.is_active == True).first()
+    if not providers:
+        raise HTTPException(status_code=400, detail="没有配置可用的AI模型供应商")
+
+    task = AnalysisTask(
+        task_type="selective",
+        status="pending",
+        total_stocks=len(stocks),
+        triggered_by=admin.username,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+
+    thread = threading.Thread(
+        target=_run_batch_analysis, args=(task.id, stock_ids), daemon=True
+    )
+    thread.start()
+
+    return {
+        "message": f"已触发选择性分析，共 {len(stocks)} 只股票",
+        "task_id": task.id,
+        "total_stocks": len(stocks),
+    }
+
+
+@router.post("/api/ai/analysis/tasks/{task_id}/cancel")
+def cancel_analysis_task(task_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """取消正在运行的分析任务"""
+    task = db.query(AnalysisTask).filter(AnalysisTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if task.status not in ("pending", "running"):
+        raise HTTPException(status_code=400, detail="任务已完成或已取消")
+    task.status = "cancelled"
+    db.commit()
+    return {"message": "已取消任务"}
+
+
+@router.get("/api/ai/analysis/tasks")
+def list_analysis_tasks(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    tasks = db.query(AnalysisTask).order_by(AnalysisTask.id.desc()).limit(50).all()
+    return [
+        {
+            "id": t.id,
+            "task_type": t.task_type,
+            "status": t.status,
+            "total_stocks": t.total_stocks,
+            "completed_stocks": t.completed_stocks,
+            "failed_stocks": t.failed_stocks,
+            "current_stock": t.current_stock,
+            "error_message": t.error_message,
+            "triggered_by": t.triggered_by,
+            "started_at": t.started_at.isoformat() if t.started_at else None,
+            "completed_at": t.completed_at.isoformat() if t.completed_at else None,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in tasks
+    ]
+
+
+@router.get("/api/ai/analysis/tasks/{task_id}")
+def get_analysis_task(task_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    task = db.query(AnalysisTask).filter(AnalysisTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    analyses = db.query(StockAnalysis).filter(StockAnalysis.task_id == task_id).all()
+    return {
+        "id": task.id,
+        "task_type": task.task_type,
+        "status": task.status,
+        "total_stocks": task.total_stocks,
+        "completed_stocks": task.completed_stocks,
+        "failed_stocks": task.failed_stocks,
+        "current_stock": task.current_stock,
+        "error_message": task.error_message,
+        "triggered_by": task.triggered_by,
+        "started_at": task.started_at.isoformat() if task.started_at else None,
+        "completed_at": task.completed_at.isoformat() if task.completed_at else None,
+        "created_at": task.created_at.isoformat() if task.created_at else None,
+        "analyses": [_analysis_to_dict(a) for a in analyses],
+    }
+
+
+# ── 分析结果与历史 ──────────────────────────────────────────────
+
+def _analysis_to_dict(analysis: StockAnalysis) -> dict:
+    return {
+        "id": analysis.id,
+        "stock_id": analysis.stock_id,
+        "stock_name": analysis.stock.name if analysis.stock else None,
+        "stock_code": analysis.stock.code if analysis.stock else None,
+        "task_id": analysis.task_id,
+        "model_name": analysis.model_name,
+        "version": analysis.version,
+        "is_current": analysis.is_current,
+        "buy_price_range": analysis.buy_price_range,
+        "buy_strategy": analysis.buy_strategy,
+        "target_price": analysis.target_price,
+        "stop_loss_price": analysis.stop_loss_price,
+        "target_desc": analysis.target_desc,
+        "holding_period": analysis.holding_period,
+        "expected_return": analysis.expected_return,
+        "rise_reasons": analysis.rise_reasons,
+        "industry_tech": analysis.industry_tech,
+        "physics_limits": analysis.physics_limits,
+        "substitution_threat": analysis.substitution_threat,
+        "supply_demand_bias": analysis.supply_demand_bias,
+        "geopolitical_risk": analysis.geopolitical_risk,
+        "capacity_feasibility": analysis.capacity_feasibility,
+        "demand_sustainability": analysis.demand_sustainability,
+        "valuation_rationality": analysis.valuation_rationality,
+        "risks": analysis.risks,
+        "score": analysis.score,
+        "score_comment": analysis.score_comment,
+        "summary": analysis.summary,
+        "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+    }
+
+
+@router.get("/api/ai/analysis/history")
+def list_analysis_history(db: Session = Depends(get_db)):
+    """获取所有分析历史（按时间倒序）"""
+    analyses = (
+        db.query(StockAnalysis)
+        .order_by(StockAnalysis.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    return [_analysis_to_dict(a) for a in analyses]
+
+
+@router.get("/api/ai/analysis/stock/{stock_id}")
+def get_stock_analysis_history(stock_id: int, db: Session = Depends(get_db)):
+    """获取单只股票的分析历史"""
+    stock = db.query(TrackedStock).filter(TrackedStock.id == stock_id).first()
+    if not stock:
+        raise HTTPException(status_code=404, detail="股票不存在")
+
+    analyses = (
+        db.query(StockAnalysis)
+        .filter(StockAnalysis.stock_id == stock_id)
+        .order_by(StockAnalysis.version.desc())
+        .all()
+    )
+    return {
+        "stock": {"id": stock.id, "code": stock.code, "name": stock.name},
+        "analyses": [_analysis_to_dict(a) for a in analyses],
+    }
+
+
+@router.get("/api/ai/analysis/{analysis_id}")
+def get_analysis_detail(analysis_id: int, db: Session = Depends(get_db)):
+    """获取单次分析详情"""
+    analysis = db.query(StockAnalysis).filter(StockAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="分析记录不存在")
+    return _analysis_to_dict(analysis)

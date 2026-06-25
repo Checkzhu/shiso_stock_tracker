@@ -224,6 +224,36 @@ tr:hover td { background: rgba(0,212,170,0.03); }
 .score-bar .bar-fill.low { background: var(--red); }
 .score-bar .score-val { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; min-width: 3rem; text-align: right; }
 
+/* Serenity 紫苏叶四维评分 */
+.serenity-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+.serenity-card { background: var(--bg3); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 0.75rem; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+.serenity-card:hover { transform: translateY(-2px); }
+.serenity-card .ser-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; }
+.serenity-card .ser-value { font-size: 1.7rem; font-weight: 900; font-family: var(--font-mono); line-height: 1.1; }
+.serenity-card .ser-value.high { color: #34d399; }
+.serenity-card .ser-value.mid { color: #fbbf24; }
+.serenity-card .ser-value.low { color: #f87171; }
+.serenity-card .ser-desc { font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.4; min-height: 2.4em; }
+.serenity-card.high { border-color: rgba(52,211,153,0.35); }
+.serenity-card.mid { border-color: rgba(251,191,36,0.35); }
+.serenity-card.low { border-color: rgba(248,113,113,0.35); }
+
+/* 深度分析结构化样式 */
+.depth-section { margin-bottom: 1.5rem; }
+.depth-section:last-child { margin-bottom: 0; }
+.depth-section-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule); }
+.depth-sub-section { margin-bottom: 1rem; }
+.depth-sub-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 0.4rem; display: flex; align-items: baseline; gap: 0.3rem; }
+.depth-sub-title .num { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+.depth-text { font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+.depth-text ul { margin: 0.3rem 0 0.3rem 1.2rem; }
+.depth-text li { margin-bottom: 0.25rem; }
+.depth-text p { margin: 0 0 0.4rem; }
+.depth-text p:last-child { margin-bottom: 0; }
+.depth-callout { background: var(--bg3); border: 1px solid var(--rule); border-left: 3px solid var(--accent2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--text); line-height: 1.7; margin-top: 0.5rem; }
+.depth-callout strong { color: var(--red); }
+.depth-empty { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
 .analysis-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
 .analysis-section:last-child { border-bottom: none; }
 .analysis-section h4 { font-size: 0.95rem; font-weight: 600; color: var(--accent3); margin-bottom: 0.5rem; }
@@ -252,19 +282,118 @@ tr:hover td { background: rgba(0,212,170,0.03); }
 .user-role-badge.invited { background: var(--accent3); color: white; }
 .user-role-badge.viewer { background: var(--bg4); color: var(--muted); }
 .role-select { padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid var(--rule); background: var(--bg3); color: var(--ink); font-size: 0.8rem; cursor: pointer; }
+.invite-code-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.invite-code-item:last-child { border-bottom: none; }
+.invite-code-info { flex: 1; }
+
+/* Mobile table: horizontal scroll */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-wrap table { min-width: 900px; }
+
+/* Mobile stock cards (alternative to table) */
+.stock-cards { display: none; }
 
 @media (max-width: 768px) {
-  .sidebar { width: 64px; }
-  .main { margin-left: 64px; padding: 1rem; }
-  .sidebar-toggle { left: 64px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .sidebar { width: 0; display: none; }
+  .main { margin-left: 0; padding: 0.75rem; }
+  .sidebar-toggle { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .stat-card { padding: 0.75rem; }
+  .stat-card .stat-value { font-size: 1.3rem; }
   .quote-info { grid-template-columns: repeat(2, 1fr); }
   .trade-box { grid-template-columns: 1fr; }
   .stock-detail-header { flex-direction: column; gap: 1rem; }
+  .page-header h2 { font-size: 1.2rem; }
+  .page-header p { font-size: 0.75rem; }
+  .quote-price { font-size: 2rem; }
+  .login-box { width: 92%; padding: 1.5rem; }
+  .card-header { padding: 0.75rem 1rem; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .user-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .report-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .report-meta { width: 100%; justify-content: space-between; }
+  .serenity-grid { grid-template-columns: repeat(2, 1fr); }
+  .serenity-card .ser-value { font-size: 1.4rem; }
 }
+
+/* AI Provider Config */
+.provider-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.provider-item:last-child { border-bottom: none; }
+.provider-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+.provider-badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: var(--accent3); color: white; }
+.provider-badge.healthy { background: var(--green); }
+.provider-badge.unhealthy { background: var(--red); }
+.provider-badge.inactive { background: var(--bg4); color: var(--muted); }
+.provider-actions { display: flex; gap: 0.5rem; align-items: center; }
+.provider-detail { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-full { grid-column: 1 / -1; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.modal h3 { margin-bottom: 1rem; font-size: 1.1rem; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+
+/* Analysis Progress */
+.task-progress { margin: 1rem 0; }
+.progress-bar-wrap { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+.progress-bar-fill.error { background: var(--red); }
+.task-status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+.task-status-badge.pending { background: var(--yellow); color: var(--bg); }
+.task-status-badge.running { background: var(--accent3); color: white; }
+.task-status-badge.completed { background: var(--green); color: white; }
+.task-status-badge.failed { background: var(--red); color: white; }
+.task-status-badge.cancelled { background: var(--bg4); color: var(--muted); }
+.task-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.task-item:last-child { border-bottom: none; }
+.task-info { flex: 1; }
+.task-info h4 { font-size: 0.88rem; font-weight: 600; }
+.task-info span { font-size: 0.75rem; color: var(--muted); }
+.task-meta { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Analysis History */
+.analysis-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.2s; }
+.analysis-item:hover { background: var(--bg3); }
+.analysis-item:last-child { border-bottom: none; }
+.analysis-item-header { display: flex; justify-content: space-between; align-items: center; }
+.analysis-item-title { font-weight: 600; font-size: 0.9rem; }
+.analysis-item-meta { font-size: 0.75rem; color: var(--muted); display: flex; gap: 1rem; margin-top: 0.3rem; }
+.analysis-detail-section { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+.analysis-detail-section:last-child { border-bottom: none; }
+.analysis-detail-section h4 { font-size: 0.9rem; font-weight: 600; color: var(--accent3); margin-bottom: 0.5rem; }
+.analysis-detail-section p { font-size: 0.85rem; line-height: 1.7; color: var(--ink); }
+.version-badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.65rem; background: var(--accent3); color: white; margin-left: 0.5rem; }
+.version-badge.current { background: var(--green); }
+.history-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.history-tab { padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.history-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* Selectable stock cards for analysis */
+.stock-select-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+.stock-select-card { background: var(--bg3); border: 2px solid var(--rule); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; }
+.stock-select-card:hover { border-color: var(--accent3); }
+.stock-select-card.selected { border-color: var(--accent); background: rgba(0,212,170,0.08); }
+.stock-select-card .stock-select-name { font-weight: 600; font-size: 0.85rem; }
+.stock-select-card .stock-select-code { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
   .quote-info { grid-template-columns: 1fr; }
+  .main { padding: 0.5rem; }
+  .page-header { margin-bottom: 1rem; }
+  .quote-card { padding: 1rem; }
+  .metric-box { padding: 0.6rem; }
+  .metric-box .value { font-size: 1rem; }
+  .trade-item { padding: 0.75rem; }
+  .nav-item { padding: 0.5rem 1rem; font-size: 0.8rem; }
+  th, td { padding: 0.5rem 0.6rem; font-size: 0.78rem; }
+  .stock-code { font-size: 0.72rem; }
+  .price { font-size: 0.85rem; }
+  .added-return-pct { font-size: 0.85rem; }
+  .btn-sm { padding: 0.2rem 0.4rem; font-size: 0.7rem; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -306,6 +435,10 @@ tr:hover td { background: rgba(0,212,170,0.03); }
       <label>密码</label>
       <input type="password" id="reg-password" placeholder="请输入密码">
     </div>
+    <div class="form-group">
+      <label>邀请码（选填）</label>
+      <input type="text" id="reg-invite-code" placeholder="有邀请码可自动获得权限">
+    </div>
     <button class="login-btn" onclick="doRegister()">注册</button>
     <p class="login-footer">已有账号？<a onclick="showLogin()">返回登录</a></p>
   </div>
@@ -329,6 +462,27 @@ tr:hover td { background: rgba(0,212,170,0.03); }
       <div class="nav-item" data-page="reports">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span class="nav-text">报告管理</span>
+      </div>
+    </div>
+
+    <div class="nav-section" id="admin-nav-section" style="display:none;">
+      <div class="nav-section-title">系统管理</div>
+      <div class="nav-item" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="nav-text">用户管理</span>
+      </div>
+      <div class="nav-section-title">AI分析</div>
+      <div class="nav-item" data-page="ai-config">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="nav-text">模型配置</span>
+      </div>
+      <div class="nav-item" data-page="ai-analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="nav-text">AI分析</span>
+      </div>
+      <div class="nav-item" data-page="ai-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="nav-text">分析历史</span>
       </div>
     </div>
 
@@ -365,6 +519,9 @@ tr:hover td { background: rgba(0,212,170,0.03); }
     <div id="page-stock-detail" class="page"></div>
     <div id="page-reports" class="page"></div>
     <div id="page-users" class="page"></div>
+    <div id="page-ai-config" class="page"></div>
+    <div id="page-ai-analysis" class="page"></div>
+    <div id="page-ai-history" class="page"></div>
   </div>
 </div>
 
@@ -418,6 +575,10 @@ async function api(path, opts = {}) {
   const res = await fetch(API + path, { ...opts, headers: { ...headers, ...opts.headers } });
   if (res.status === 401) { logout(); throw new Error('未登录'); }
   if (res.status === 403) { showToast('无权限执行此操作', true); throw new Error('无权限'); }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `请求失败 (${res.status})` }));
+    throw new Error(err.detail || `请求失败 (${res.status})`);
+  }
   return res.json();
 }
 
@@ -487,13 +648,14 @@ async function doRegister() {
   const username = document.getElementById('reg-username').value.trim();
   const nickname = document.getElementById('reg-nickname').value.trim();
   const password = document.getElementById('reg-password').value;
+  const invite_code = document.getElementById('reg-invite-code').value.trim();
   if (!username || !password) { showToast('请输入用户名和密码', true); return; }
 
   try {
     const res = await fetch(API + '/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, nickname }),
+      body: JSON.stringify({ username, password, nickname, invite_code: invite_code || null }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || '注册失败');
@@ -535,6 +697,12 @@ function showApp() {
   document.getElementById('user-role').textContent = { admin: '管理员', invited: '受邀用户', viewer: '普通用户' }[currentUser.role] || currentUser.role;
   document.getElementById('user-avatar').textContent = (currentUser.nickname || currentUser.username).charAt(0).toUpperCase();
 
+  // 显示/隐藏管理员导航
+  const adminNav = document.getElementById('admin-nav-section');
+  if (adminNav) {
+    adminNav.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+  }
+
   loadSidebarStocks();
   loadDashboard();
 }
@@ -570,6 +738,9 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (page === 'dashboard') { document.getElementById('page-dashboard').classList.add('active'); loadDashboard(); }
     else if (page === 'reports') { document.getElementById('page-reports').classList.add('active'); loadReports(); }
     else if (page === 'users') { document.getElementById('page-users').classList.add('active'); loadUsers(); }
+    else if (page === 'ai-config') { document.getElementById('page-ai-config').classList.add('active'); loadAIConfig(); }
+    else if (page === 'ai-analysis') { document.getElementById('page-ai-analysis').classList.add('active'); loadAIAnalysis(); }
+    else if (page === 'ai-history') { document.getElementById('page-ai-history').classList.add('active'); loadAIHistory(); }
   });
 });
 
@@ -589,35 +760,36 @@ async function loadDashboard() {
             刷新行情
           </button>
         </div>
-        <table>
-          <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
-          <tbody>
-            ${quotes.map(q => `
-              <tr>
-                <td class="stock-code" onclick="loadStockDetail(${q.id})">${q.code}</td>
-                <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
-                <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
-                <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
-                <td>
-                  <div class="added-return">
-                    <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
-                    <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
-                  </div>
-                </td>
-                <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
-                <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
-                <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
-                <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
-                <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
-                <td>
-                  ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
-                  <br>
-                  ${canManage() ? `<button class="btn btn-sm" style="margin-top:0.25rem;" onclick="editAddedPrice(${q.id}, '${q.name}', ${q.added_price || 'null'})">设置成本</button>` : ''}
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加时价格</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
+            <tbody>
+              ${quotes.map(q => `
+                <tr>
+                  <td class="stock-code" onclick="loadStockDetail(${q.id})">${q.code}</td>
+                  <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
+                  <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
+                  <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
+                  <td class="price">${q.added_price ? q.added_price.toFixed(2) : '-'}</td>
+                  <td>
+                    <div class="added-return">
+                      <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
+                      <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
+                    </div>
+                  </td>
+                  <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
+                  <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
+                  <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
+                  <td>
+                    ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     ` : '<div class="empty"><div class="icon">📊</div><p>暂无追踪中的股票</p></div>';
 
@@ -682,7 +854,6 @@ async function loadStockDetail(stockId) {
       </div>
     ` : '';
     const risks = data.risks?.length > 0 ? `<ul class="risk-list">${data.risks.map(r => `<li class="${r.level === 'medium' ? 'medium' : ''}">${r.text}</li>`).join('')}</ul>` : '';
-    const analysis = data.analysis_sections?.length > 0 ? data.analysis_sections.map(s => `<div class="analysis-section"><h4>${s.title}</h4><p>${s.content}</p></div>`).join('') : '';
     const metrics = data.metrics ? `
       <div class="metrics-grid">
         ${Object.entries(data.metrics).map(([k, v]) => {
@@ -705,7 +876,102 @@ async function loadStockDetail(stockId) {
         ${data.expected_return ? `<div class="metric-box"><div class="value green">${data.expected_return}</div><div class="label">预期收益率</div></div>` : ''}
       </div>
     ` : '';
-    const scoreBar = data.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${data.score >= 7 ? 'high' : data.score >= 5 ? 'mid' : 'low'}" style="width:${(data.score/10)*100}%"></div></div><span class="score-val">${data.score.toFixed(1)}/10</span></div>` : '';
+    const scoreBar = data.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${data.score >= 15 ? 'high' : data.score >= 10 ? 'mid' : 'low'}" style="width:${Math.min(100, (data.score/20)*100)}%"></div></div><span class="score-val">${data.score.toFixed(1)}/20</span></div>` : '';
+
+    // 紫苏叶四维评分
+    const serenity = data.serenity_scores || {};
+    const serenityKeys = [
+      { key: 'necessity', label: '刚需性' },
+      { key: 'scarcity', label: '稀缺性' },
+      { key: 'unpopularity', label: '冷门性' },
+      { key: 'valuation', label: '估值空间' },
+    ];
+    const serenityGrid = `
+      <div class="serenity-grid">
+        ${serenityKeys.map(({ key, label }) => {
+          const item = serenity[key];
+          if (!item) {
+            return `<div class="serenity-card"><div class="ser-label">${label}</div><div class="ser-value mid">-</div><div class="ser-desc">暂无数据</div></div>`;
+          }
+          return `<div class="serenity-card ${item.level}">
+            <div class="ser-label">${label}</div>
+            <div class="ser-value ${item.level}">${item.score_text || (item.score != null ? item.score + '/10' : '-')}</div>
+            <div class="ser-desc">${item.desc || ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+
+    // 构建深度分析 HTML
+    function formatText(text) {
+      if (!text) return '';
+      return text.split('。').filter(s => s.trim()).map(s => s.trim() + '。').join('');
+    }
+
+    function renderSubItem(title, text, prefix) {
+      if (!text) return '';
+      return `<div class="depth-sub-section">
+        <div class="depth-sub-title"><span class="num">${prefix}</span>${title}</div>
+        <div class="depth-text">${formatText(text)}</div>
+      </div>`;
+    }
+
+    const depth = data.depth_analysis || {};
+    const riseReasons = depth.rise_reasons || {};
+
+    const depthAnalysisHtml = (() => {
+      const sections = [];
+
+      // 1. 行业技术关联性
+      if (depth.industry_tech) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">一、行业技术关联性</div>
+          <div class="depth-text">${formatText(depth.industry_tech)}</div>
+        </div>`);
+      }
+
+      // 2. 上涨原因分析
+      if (riseReasons.basic || riseReasons.technical || riseReasons.capital || riseReasons.policy) {
+        const subItems = [
+          { k: 'basic', l: '基本面驱动', n: '2.1' },
+          { k: 'technical', l: '技术面信号', n: '2.2' },
+          { k: 'capital', l: '资金面动向', n: '2.3' },
+          { k: 'policy', l: '政策面利好', n: '2.4' },
+        ].map(({ k, l, n }) => renderSubItem(l, riseReasons[k], n)).join('');
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">二、上涨原因分析</div>
+          ${subItems}
+        </div>`);
+      }
+
+      // 3. Serenity产业链深度分析
+      const serenityItems = [
+        { k: 'physics_limits', l: '技术路线的物理极限', n: '3.1' },
+        { k: 'substitution_threat', l: '潜在替代方案的威胁', n: '3.2' },
+        { k: 'supply_demand_logic', l: '行业供需测算的逻辑偏差', n: '3.3' },
+        { k: 'geo_risk', l: '地缘政策风险', n: '3.4' },
+        { k: 'capacity_feasibility', l: '标的产能扩张计划的可行性', n: '3.5' },
+        { k: 'feasibility_assessment', l: '可行性评估', n: '3.6' },
+        { k: 'demand_sustainability', l: '下游需求的可持续性', n: '3.7' },
+        { k: 'valuation_rationality', l: '估值体系的合理性', n: '3.8' },
+      ].filter(({ k }) => depth[k]).map(({ k, l, n }) => renderSubItem(l, depth[k], n)).join('');
+      if (serenityItems) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">三、Serenity产业链深度分析</div>
+          ${serenityItems}
+        </div>`);
+      }
+
+      // 4. 不可替代性测试
+      if (depth.irreplaceability) {
+        sections.push(`<div class="depth-section">
+          <div class="depth-section-title">四、不可替代性测试</div>
+          <div class="depth-callout">${formatText(depth.irreplaceability)}</div>
+        </div>`);
+      }
+
+      return sections.length > 0 ? sections.join('') : '<div class="depth-empty">暂无深度分析数据</div>';
+    })();
 
     container.innerHTML = `
       <div class="page-header">
@@ -719,6 +985,13 @@ async function loadStockDetail(stockId) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             刷新行情
           </button>
+          ${currentUser && currentUser.role === 'admin' ? `
+          <button class="btn btn-primary" onclick="triggerSingleStockAnalysis(${stockId})" style="background:var(--accent2);border-color:var(--accent2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            AI分析
+          </button>
+          <button class="btn" onclick="viewStockAnalysisHistory(${stockId})">分析历史</button>
+          ` : ''}
         </div>
       </div>
 
@@ -750,6 +1023,11 @@ async function loadStockDetail(stockId) {
       </div> -->
 
       <div class="card">
+        <div class="card-header"><h3>紫苏叶四维评分</h3></div>
+        <div style="padding:1rem 1.25rem;">${serenityGrid}</div>
+      </div>
+
+      <div class="card">
         <div class="card-header"><h3>股票指标</h3></div>
         <div style="padding:1rem 1.25rem;">${metrics}</div>
       </div>
@@ -771,17 +1049,9 @@ async function loadStockDetail(stockId) {
 
       <div class="card">
         <div class="card-header"><h3>深度分析</h3></div>
-        <div style="padding:1rem 1.25rem;">${analysis || '<p style="color:var(--muted);">暂无深度分析内容</p>'}</div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h3>价格历史</h3></div>
-        <div id="price-history-${stockId}" style="padding:1rem 1.25rem;"></div>
+        <div style="padding:1rem 1.25rem;">${depthAnalysisHtml}</div>
       </div>
     `;
-
-    loadPriceHistory(stockId);
-    await loadStockChartData(stockId);
   } catch (e) {
     container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
   }
@@ -1052,30 +1322,679 @@ async function loadUsers() {
   container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
 
   try {
-    const users = await api('/api/users');
+    const [users, inviteCodes] = await Promise.all([
+      api('/api/users'),
+      api('/api/invite-codes'),
+    ]);
+
     container.innerHTML = `
       <div class="page-header">
         <h2>用户管理</h2>
-        <p>管理系统用户和权限</p>
+        <p>管理系统用户、权限和邀请码</p>
       </div>
+
       <div class="card">
-        <div class="card-header"><h3>用户列表</h3></div>
+        <div class="card-header"><h3>用户列表 (${users.length})</h3></div>
         <div>
-          ${users.map(u => `
+          ${users.length > 0 ? users.map(u => `
             <div class="user-item">
               <div class="user-item-info">
                 <div class="user-avatar">${(u.nickname || u.username).charAt(0).toUpperCase()}</div>
                 <div>
                   <div class="user-name">${u.nickname || u.username}</div>
-                  <div class="user-role">@${u.username}</div>
+                  <div class="user-role">@${u.username} · ${u.invite_code ? '邀请码: ' + u.invite_code : ''}</div>
+                  <div style="font-size:0.72rem;color:var(--muted);">注册: ${u.created_at ? new Date(u.created_at).toLocaleDateString('zh-CN') : '-'} · 最后登录: ${u.last_login ? new Date(u.last_login).toLocaleDateString('zh-CN') : '从未'}</div>
                 </div>
                 <span class="user-role-badge ${u.role}">${u.role === 'admin' ? '管理员' : u.role === 'invited' ? '受邀用户' : '普通用户'}</span>
               </div>
-              <select class="role-select" onchange="changeUserRole(${u.id}, this.value)" ${u.id === currentUser.id ? 'disabled' : ''}>
-                <option value="admin" ${u.role==='admin'?'selected':''}>管理员</option>
-                <option value="invited" ${u.role==='invited'?'selected':''}>受邀用户</option>
-                <option value="viewer" ${u.role==='viewer'?'selected':''}>普通用户</option>
-              </select>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <select class="role-select" onchange="changeUserRole(${u.id}, this.value)" ${u.id === currentUser.id ? 'disabled' : ''}>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>管理员</option>
+                  <option value="invited" ${u.role==='invited'?'selected':''}>受邀用户</option>
+                  <option value="viewer" ${u.role==='viewer'?'selected':''}>普通用户</option>
+                </select>
+                ${u.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username}')">删除</button>` : ''}
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><p>暂无用户</p></div>'}
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.5rem;">
+        <div class="card-header">
+          <h3>邀请码管理</h3>
+          <button class="btn btn-primary btn-sm" onclick="showCreateInviteCodeModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            生成邀请码
+          </button>
+        </div>
+        <div>
+          ${inviteCodes.length > 0 ? inviteCodes.map(c => `
+            <div class="invite-code-item">
+              <div class="invite-code-info">
+                <div style="font-weight:600;font-size:0.95rem;font-family:var(--font-mono);">${c.code}</div>
+                <div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">
+                  角色: <span class="user-role-badge ${c.role}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${c.role === 'admin' ? '管理员' : c.role === 'invited' ? '受邀用户' : '普通用户'}</span>
+                  · 已用: ${c.used_count}${c.max_uses > 0 ? '/' + c.max_uses : '/无限'}
+                  · 创建者: ${c.created_by || '-'}
+                  ${c.expires_at ? '· 过期: ' + new Date(c.expires_at).toLocaleDateString('zh-CN') : ''}
+                  ${c.note ? '· 备注: ' + c.note : ''}
+                </div>
+              </div>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <span class="provider-badge ${!c.is_active || c.is_expired ? 'unhealthy' : 'healthy'}">${c.is_expired ? '已过期' : c.is_active ? '有效' : '已禁用'}</span>
+                <button class="btn btn-sm" onclick="toggleInviteCode(${c.id})">${c.is_active ? '禁用' : '启用'}</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteInviteCode(${c.id}, '${c.code}')">删除</button>
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><p>暂无邀请码</p></div>'}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function showCreateInviteCodeModal() {
+  const html = `
+    <div class="modal-overlay" id="invite-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <h3>生成邀请码</h3>
+        <div class="form-group">
+          <label>默认角色</label>
+          <select id="invite-role" class="role-select" style="width:100%;padding:0.7rem;">
+            <option value="viewer">普通用户</option>
+            <option value="invited">受邀用户</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>最大使用次数（0表示无限）</label>
+          <input type="number" id="invite-max-uses" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>过期天数（留空表示永不过期）</label>
+          <input type="number" id="invite-expires-days" placeholder="如 30" min="1">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <input type="text" id="invite-note" placeholder="如 给张三的邀请码">
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="document.getElementById('invite-modal').remove()">取消</button>
+          <button class="btn btn-primary" onclick="createInviteCode()">生成</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function createInviteCode() {
+  const role = document.getElementById('invite-role').value;
+  const max_uses = parseInt(document.getElementById('invite-max-uses').value) || 0;
+  const expires_days = parseInt(document.getElementById('invite-expires-days').value) || null;
+  const note = document.getElementById('invite-note').value.trim() || null;
+
+  try {
+    const result = await api('/api/invite-codes', {
+      method: 'POST',
+      body: JSON.stringify({ role, max_uses, expires_days, note }),
+    });
+    showToast(`邀请码已生成: ${result.code}`);
+    document.getElementById('invite-modal')?.remove();
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function changeUserRole(userId, role) {
+  try {
+    await api(`/api/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }), headers: { 'Content-Type': 'application/json' } });
+    showToast('权限已更新');
+  } catch (e) { showToast(e.message, true); loadUsers(); }
+}
+
+async function deleteUser(userId, username) {
+  if (!confirm(`确定删除用户 "${username}" 吗？此操作不可恢复。`)) return;
+  try {
+    await api(`/api/users/${userId}`, { method: 'DELETE' });
+    showToast(`已删除用户 ${username}`);
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function toggleInviteCode(codeId) {
+  try {
+    const result = await api(`/api/invite-codes/${codeId}/toggle`, { method: 'PUT' });
+    showToast(result.message);
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteInviteCode(codeId, code) {
+  if (!confirm(`确定删除邀请码 "${code}" 吗？`)) return;
+  try {
+    await api(`/api/invite-codes/${codeId}`, { method: 'DELETE' });
+    showToast('邀请码已删除');
+    loadUsers();
+  } catch (e) { showToast(e.message, true); }
+}
+
+// ── AI模型配置页面 ──────────────────────────────────────
+
+let providerDefaults = { types: {}, defaults: {} };
+
+async function loadProviderDefaults() {
+  try {
+    providerDefaults = await api('/api/ai/providers/defaults');
+  } catch (e) { console.error(e); }
+}
+
+async function loadAIConfig() {
+  const container = document.getElementById('page-ai-config');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    await loadProviderDefaults();
+    const providers = await api('/api/ai/providers') || [];
+
+    const types = providerDefaults.types || {};
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>AI模型配置</h2>
+        <p>管理AI分析使用的模型供应商，支持多个供应商自动切换</p>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <button class="btn btn-primary" onclick="showAddProviderModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加模型供应商
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>已配置的供应商</h3></div>
+        <div>
+          ${providers.length > 0 ? providers.map(p => `
+            <div class="provider-item">
+              <div class="provider-info">
+                <div>
+                  <div style="font-weight:600;font-size:0.9rem;">${p.name}</div>
+                  <div class="provider-detail">
+                    ${types[p.provider_type] || p.provider_type} · ${p.model_name} · 优先级 ${p.priority}
+                    ${p.last_error ? `<br><span style="color:var(--red);font-size:0.7rem;">${p.last_error}</span>` : ''}
+                    ${p.last_used_at ? `<br><span>上次使用: ${new Date(p.last_used_at).toLocaleString('zh-CN')}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="provider-actions">
+                <span class="provider-badge ${!p.is_active ? 'inactive' : p.is_healthy ? 'healthy' : 'unhealthy'}">${!p.is_active ? '已禁用' : p.is_healthy ? '正常' : '异常'}</span>
+                <button class="btn btn-sm" onclick="testProvider(${p.id})">测试连接</button>
+                <button class="btn btn-sm" onclick="showEditProviderModal(${p.id})">编辑</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProvider(${p.id}, '${p.name}')">删除</button>
+              </div>
+            </div>
+          `).join('') : '<div class="empty"><div class="icon">🤖</div><p>尚未配置任何AI模型供应商</p><p style="font-size:0.8rem;margin-top:0.5rem;">点击上方按钮添加供应商以启用AI分析功能</p></div>'}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p><p style="font-size:0.8rem;margin-top:0.5rem;">如果是首次使用，请重启应用以创建数据库表</p></div>`;
+  }
+}
+
+function showAddProviderModal() {
+  const types = providerDefaults.types || {};
+  const defaults = providerDefaults.defaults || {};
+  const typeOptions = Object.entries(types).length > 0
+    ? Object.entries(types).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')
+    : '<option value="custom">自定义 (OpenAI兼容)</option><option value="openai">OpenAI</option><option value="deepseek">DeepSeek</option><option value="zhipu">智谱AI</option><option value="qwen">通义千问</option><option value="moonshot">月之暗面</option><option value="ollama">Ollama (本地)</option>';
+  const html = `
+    <div class="modal-overlay" id="provider-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <h3>添加AI模型供应商</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>供应商名称</label>
+            <input type="text" id="pv-name" placeholder="如：DeepSeek主力">
+          </div>
+          <div class="form-group">
+            <label>供应商类型</label>
+            <select id="pv-type" class="role-select" style="width:100%;padding:0.7rem;" onchange="onProviderTypeChange()">
+              ${typeOptions}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>API Base URL</label>
+            <input type="text" id="pv-base" placeholder="API地址">
+          </div>
+          <div class="form-group">
+            <label>模型名称</label>
+            <input type="text" id="pv-model" placeholder="如 deepseek-chat">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label>API Key（本地模型可留空）</label>
+          <input type="password" id="pv-key" placeholder="sk-...">
+        </div>
+        <div class="form-row three">
+          <div class="form-group">
+            <label>最大Token数</label>
+            <input type="number" id="pv-tokens" value="4096">
+          </div>
+          <div class="form-group">
+            <label>Temperature</label>
+            <input type="number" id="pv-temp" value="0.7" step="0.1" min="0" max="2">
+          </div>
+          <div class="form-group">
+            <label>优先级（越大越优先）</label>
+            <input type="number" id="pv-priority" value="0">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="document.getElementById('provider-modal').remove()">取消</button>
+          <button class="btn btn-primary" onclick="saveNewProvider()">保存</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  onProviderTypeChange();
+}
+
+function onProviderTypeChange() {
+  const type = document.getElementById('pv-type')?.value;
+  const defaults = providerDefaults.defaults || {};
+  if (type && defaults[type]) {
+    const d = defaults[type];
+    const baseInput = document.getElementById('pv-base');
+    const modelInput = document.getElementById('pv-model');
+    if (baseInput && d.api_base) baseInput.value = d.api_base;
+    if (modelInput && d.model) modelInput.value = d.model;
+  }
+}
+
+async function saveNewProvider() {
+  const data = {
+    name: document.getElementById('pv-name').value.trim(),
+    provider_type: document.getElementById('pv-type').value,
+    api_base: document.getElementById('pv-base').value.trim(),
+    model_name: document.getElementById('pv-model').value.trim(),
+    api_key: document.getElementById('pv-key').value.trim() || null,
+    max_tokens: parseInt(document.getElementById('pv-tokens').value) || 4096,
+    temperature: parseFloat(document.getElementById('pv-temp').value) || 0.7,
+    priority: parseInt(document.getElementById('pv-priority').value) || 0,
+  };
+  if (!data.name) { showToast('请输入供应商名称', true); return; }
+  try {
+    await api('/api/ai/providers', { method: 'POST', body: JSON.stringify(data) });
+    showToast('供应商已添加');
+    document.getElementById('provider-modal')?.remove();
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function showEditProviderModal(id) {
+  try {
+    const providers = await api('/api/ai/providers');
+    const p = providers.find(x => x.id === id);
+    if (!p) { showToast('供应商不存在', true); return; }
+
+    const html = `
+      <div class="modal-overlay" id="provider-modal" onclick="if(event.target===this)this.remove()">
+        <div class="modal">
+          <h3>编辑供应商: ${p.name}</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>供应商名称</label>
+              <input type="text" id="pv-name" value="${p.name}">
+            </div>
+            <div class="form-group">
+              <label>供应商类型</label>
+              <input type="text" value="${(providerDefaults.types || {})[p.provider_type] || p.provider_type}" disabled>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>API Base URL</label>
+              <input type="text" id="pv-base" value="${p.api_base}">
+            </div>
+            <div class="form-group">
+              <label>模型名称</label>
+              <input type="text" id="pv-model" value="${p.model_name}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>API Key ${p.api_key_set ? '(已设置，留空则不修改)' : '(未设置)'}</label>
+            <input type="password" id="pv-key" placeholder="${p.api_key_set ? '留空不修改' : 'sk-...'}">
+          </div>
+          <div class="form-row three">
+            <div class="form-group">
+              <label>最大Token数</label>
+              <input type="number" id="pv-tokens" value="${p.max_tokens}">
+            </div>
+            <div class="form-group">
+              <label>Temperature</label>
+              <input type="number" id="pv-temp" value="${p.temperature}" step="0.1" min="0" max="2">
+            </div>
+            <div class="form-group">
+              <label>优先级</label>
+              <input type="number" id="pv-priority" value="${p.priority}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label><input type="checkbox" id="pv-active" ${p.is_active ? 'checked' : ''}> 启用此供应商</label>
+          </div>
+          <div class="modal-actions">
+            <button class="btn" onclick="document.getElementById('provider-modal').remove()">取消</button>
+            <button class="btn btn-primary" onclick="saveEditProvider(${id})">保存</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function saveEditProvider(id) {
+  const data = {
+    name: document.getElementById('pv-name').value.trim(),
+    api_base: document.getElementById('pv-base').value.trim(),
+    model_name: document.getElementById('pv-model').value.trim(),
+    max_tokens: parseInt(document.getElementById('pv-tokens').value) || 4096,
+    temperature: parseFloat(document.getElementById('pv-temp').value) || 0.7,
+    priority: parseInt(document.getElementById('pv-priority').value) || 0,
+    is_active: document.getElementById('pv-active').checked,
+  };
+  const key = document.getElementById('pv-key').value.trim();
+  if (key) data.api_key = key;
+  try {
+    await api(`/api/ai/providers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    showToast('供应商已更新');
+    document.getElementById('provider-modal')?.remove();
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteProvider(id, name) {
+  if (!confirm(`确定删除供应商"${name}"吗？`)) return;
+  try {
+    await api(`/api/ai/providers/${id}`, { method: 'DELETE' });
+    showToast('已删除');
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function testProvider(id) {
+  showToast('正在测试连接...');
+  try {
+    const result = await api(`/api/ai/providers/${id}/test`, { method: 'POST' });
+    if (result.success) {
+      showToast(`连接成功: ${result.message}`);
+    } else {
+      showToast(`连接失败: ${result.message}`, true);
+    }
+    loadAIConfig();
+  } catch (e) { showToast(e.message, true); }
+}
+
+// ── AI分析页面 ──────────────────────────────────────────────
+
+let selectedStockIds = new Set();
+let analysisPollTimer = null;
+
+async function loadAIAnalysis() {
+  const container = document.getElementById('page-ai-analysis');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const [stocks, tasks] = await Promise.all([
+      api('/api/stocks/quotes'),
+      api('/api/ai/analysis/tasks').catch(() => []),
+    ]);
+
+    const stockList = stocks || [];
+    const taskList = tasks || [];
+
+    // 当前运行中的任务
+    const activeTasks = taskList.filter(t => t.status === 'pending' || t.status === 'running');
+    const recentTasks = taskList.slice(0, 10);
+
+    const activeTaskHtml = activeTasks.map(t => {
+      const pct = t.total_stocks > 0 ? Math.round((t.completed_stocks + t.failed_stocks) / t.total_stocks * 100) : 0;
+      return `
+        <div class="card" style="margin-bottom:1rem;border-color:var(--accent3);">
+          <div class="card-header" style="background:rgba(59,130,246,0.08);">
+            <h3>
+              <span class="task-status-badge running">运行中</span>
+              分析任务 #${t.id}
+            </h3>
+            <button class="btn btn-danger btn-sm" onclick="cancelTask(${t.id})">取消任务</button>
+          </div>
+          <div style="padding:1rem 1.25rem;">
+            <div class="task-progress">
+              <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                <span>进度: ${t.completed_stocks + t.failed_stocks} / ${t.total_stocks}</span>
+                <span>${t.current_stock ? '当前: ' + t.current_stock : ''}</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:${pct}%"></div>
+              </div>
+              <div style="font-size:0.78rem;color:var(--muted);">
+                成功 ${t.completed_stocks} · 失败 ${t.failed_stocks}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>AI分析</h2>
+        <p>使用Serenity产业链投研方法对追踪股票进行深度分析</p>
+      </div>
+
+      ${activeTaskHtml}
+
+      <div class="card">
+        <div class="card-header">
+          <h3>选择股票进行分析</h3>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-sm" onclick="selectAllStocks()">全选</button>
+            <button class="btn btn-sm" onclick="deselectAllStocks()">取消全选</button>
+            <button class="btn btn-primary btn-sm" onclick="triggerSelectiveAnalysis()">
+              分析选中股票
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="triggerBatchAnalysis()" style="background:var(--accent2);border-color:var(--accent2);">
+              分析全部股票
+            </button>
+          </div>
+        </div>
+        <div style="padding:1rem 1.25rem;">
+          ${stockList.length > 0 ? `
+            <div class="stock-select-grid">
+              ${stockList.map(s => `
+                <div class="stock-select-card" data-stock-id="${s.id}" onclick="toggleStockSelect(${s.id}, this)">
+                  <div class="stock-select-name">${s.name}</div>
+                  <div class="stock-select-code">${s.code}</div>
+                  <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">${s.score ? '评分 ' + s.score.toFixed(1) : '未评分'}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : '<div class="empty"><p>暂无追踪中的股票，请先导入选股报告</p></div>'}
+        </div>
+      </div>
+
+      ${recentTasks.length > 0 ? `
+        <div class="card">
+          <div class="card-header"><h3>最近任务</h3></div>
+          <div>
+            ${recentTasks.map(t => `
+              <div class="task-item">
+                <div class="task-info">
+                  <h4>任务 #${t.id} <span class="task-status-badge ${t.status}">${{pending:'等待中',running:'运行中',completed:'已完成',failed:'失败',cancelled:'已取消'}[t.status] || t.status}</span></h4>
+                  <span>${t.triggered_by} · ${t.total_stocks}只股票 · 完成${t.completed_stocks} · 失败${t.failed_stocks}</span>
+                  ${t.current_stock ? `<span style="color:var(--accent3);"> · 当前: ${t.current_stock}</span>` : ''}
+                  ${t.error_message ? `<br><span style="color:var(--red);font-size:0.72rem;">${t.error_message}</span>` : ''}
+                </div>
+                <div class="task-meta">
+                  <span style="font-size:0.75rem;color:var(--muted);">${t.started_at ? new Date(t.started_at).toLocaleString('zh-CN') : ''}</span>
+                  ${t.status === 'running' || t.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelTask(${t.id})">取消</button>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    // 如果有运行中的任务，启动轮询
+    if (activeTasks.length > 0) {
+      startAnalysisPolling();
+    }
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function toggleStockSelect(id, el) {
+  if (selectedStockIds.has(id)) {
+    selectedStockIds.delete(id);
+    el.classList.remove('selected');
+  } else {
+    selectedStockIds.add(id);
+    el.classList.add('selected');
+  }
+}
+
+function selectAllStocks() {
+  document.querySelectorAll('.stock-select-card').forEach(card => {
+    const id = parseInt(card.dataset.stockId);
+    selectedStockIds.add(id);
+    card.classList.add('selected');
+  });
+}
+
+function deselectAllStocks() {
+  selectedStockIds.clear();
+  document.querySelectorAll('.stock-select-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+}
+
+async function triggerBatchAnalysis() {
+  if (!confirm('确定对所有活跃股票执行AI分析吗？这可能需要较长时间。')) return;
+  try {
+    const result = await api('/api/ai/analysis/batch', { method: 'POST' });
+    showToast(result.message);
+    selectedStockIds.clear();
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function triggerSelectiveAnalysis() {
+  if (selectedStockIds.size === 0) { showToast('请先选择要分析的股票', true); return; }
+  try {
+    const result = await api('/api/ai/analysis/selective', {
+      method: 'POST',
+      body: JSON.stringify(Array.from(selectedStockIds)),
+    });
+    showToast(result.message);
+    selectedStockIds.clear();
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function cancelTask(taskId) {
+  if (!confirm('确定取消此任务吗？')) return;
+  try {
+    await api(`/api/ai/analysis/tasks/${taskId}/cancel`, { method: 'POST' });
+    showToast('任务已取消');
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+function startAnalysisPolling() {
+  if (analysisPollTimer) clearInterval(analysisPollTimer);
+  analysisPollTimer = setInterval(async () => {
+    try {
+      const tasks = await api('/api/ai/analysis/tasks') || [];
+      const activeTasks = tasks.filter(t => t.status === 'pending' || t.status === 'running');
+      if (activeTasks.length === 0) {
+        clearInterval(analysisPollTimer);
+        analysisPollTimer = null;
+        showToast('分析任务已完成');
+        loadAIAnalysis();
+        return;
+      }
+      // 更新进度显示
+      const t = activeTasks[0];
+      const pct = t.total_stocks > 0 ? Math.round((t.completed_stocks + t.failed_stocks) / t.total_stocks * 100) : 0;
+      const bar = document.querySelector('.progress-bar-fill');
+      const progressText = document.querySelector('.task-progress div div span:first-child');
+      const currentText = document.querySelector('.task-progress div div span:last-child');
+      if (bar) bar.style.width = pct + '%';
+      if (progressText) progressText.textContent = `进度: ${t.completed_stocks + t.failed_stocks} / ${t.total_stocks}`;
+      if (currentText) currentText.textContent = t.current_stock ? '当前: ' + t.current_stock : '';
+    } catch (e) { console.error(e); }
+  }, 3000);
+}
+
+// ── 分析历史页面 ──────────────────────────────────────────────
+
+async function loadAIHistory() {
+  const container = document.getElementById('page-ai-history');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const history = await api('/api/ai/analysis/history') || [];
+
+    if (!Array.isArray(history) || history.length === 0) {
+      container.innerHTML = `
+        <div class="page-header">
+          <h2>分析历史</h2>
+          <p>查看所有AI分析记录和修改历史</p>
+        </div>
+        <div class="empty"><div class="icon">📊</div><p>暂无分析记录</p><p style="font-size:0.8rem;margin-top:0.5rem;">请先在"AI分析"页面对股票执行分析</p></div>
+      `;
+      return;
+    }
+
+    // 按股票分组
+    const stockMap = {};
+    history.forEach(a => {
+      const key = `${a.stock_code}_${a.stock_name}`;
+      if (!stockMap[key]) stockMap[key] = { stock_code: a.stock_code, stock_name: a.stock_name, stock_id: a.stock_id, analyses: [] };
+      stockMap[key].analyses.push(a);
+    });
+
+    const stockGroups = Object.values(stockMap);
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h2>分析历史</h2>
+        <p>查看所有AI分析记录和修改历史（共 ${history.length} 条记录）</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>按股票查看</h3></div>
+        <div>
+          ${stockGroups.map(g => `
+            <div class="analysis-item" onclick="loadStockAnalysisDetail(${g.stock_id})">
+              <div class="analysis-item-header">
+                <div class="analysis-item-title">
+                  ${g.stock_name} (${g.stock_code})
+                </div>
+                <div style="font-size:0.82rem;color:var(--accent);">${g.analyses.length} 次分析</div>
+              </div>
+              <div class="analysis-item-meta">
+                <span>最新: ${new Date(g.analyses[0].created_at).toLocaleString('zh-CN')}</span>
+                <span>评分: ${g.analyses[0].score || '-'}</span>
+                <span>模型: ${g.analyses[0].model_name || '-'}</span>
+                <span>版本: v${g.analyses[0].version}</span>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -1086,11 +2005,151 @@ async function loadUsers() {
   }
 }
 
-async function changeUserRole(userId, role) {
+async function loadStockAnalysisDetail(stockId) {
+  const container = document.getElementById('page-ai-history');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
   try {
-    await api(`/api/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }), headers: { 'Content-Type': 'application/json' } });
-    showToast('权限已更新');
-  } catch (e) { showToast(e.message, true); loadUsers(); }
+    const data = await api(`/api/ai/analysis/stock/${stockId}`);
+    const stock = data.stock;
+    const analyses = data.analyses;
+
+    if (analyses.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="icon">📊</div><p>暂无分析记录</p></div>`;
+      return;
+    }
+
+    // 版本切换标签
+    const versionTabs = analyses.map((a, i) => `
+      <div class="history-tab ${i === 0 ? 'active' : ''}" onclick="switchAnalysisVersion(this, ${a.id})" data-analysis-id="${a.id}">
+        v${a.version} ${a.is_current ? '(当前)' : ''}
+      </div>
+    `).join('');
+
+    // 初始显示第一个（最新）
+    const current = analyses[0];
+
+    container.innerHTML = `
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="btn" onclick="loadAIHistory()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            返回
+          </button>
+          <div>
+            <h2>${stock.name} (${stock.code})</h2>
+            <p>分析历史 · 共 ${analyses.length} 个版本</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-tabs">${versionTabs}</div>
+
+      <div id="analysis-detail-content">
+        ${renderAnalysisDetail(current)}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+// 缓存分析数据用于版本切换
+let _stockAnalysesCache = {};
+
+async function switchAnalysisVersion(btn, analysisId) {
+  document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  const detailContainer = document.getElementById('analysis-detail-content');
+  if (!detailContainer) return;
+
+  detailContainer.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+
+  try {
+    const analysis = await api(`/api/ai/analysis/${analysisId}`);
+    detailContainer.innerHTML = renderAnalysisDetail(analysis);
+  } catch (e) {
+    detailContainer.innerHTML = `<div class="empty"><p>加载失败: ${e.message}</p></div>`;
+  }
+}
+
+function renderAnalysisDetail(a) {
+  const scoreBar = a.score ? `
+    <div class="score-bar">
+      <div class="bar-bg">
+        <div class="bar-fill ${a.score >= 7 ? 'high' : a.score >= 5 ? 'mid' : 'low'}" style="width:${(a.score/10)*100}%"></div>
+      </div>
+      <span class="score-val">${a.score.toFixed(1)}/10</span>
+    </div>
+  ` : '';
+
+  const sections = [
+    { title: '买入策略', content: `买入区间: ${a.buy_price_range || '-'}<br>策略: ${a.buy_strategy || '-'}` },
+    { title: '卖出与止损', content: `目标价: ${a.target_price || '-'}<br>止损价: ${a.stop_loss_price || '-'}<br>${a.target_desc || ''}` },
+    { title: '持有建议', content: `持有时间: ${a.holding_period || '-'}<br>预期收益: ${a.expected_return || '-'}` },
+    { title: '上涨原因分析', content: Array.isArray(a.rise_reasons) ? a.rise_reasons.join('<br>') : (a.rise_reasons || '-') },
+    { title: '行业技术关联', content: a.industry_tech || '-' },
+    { title: '技术路线物理极限', content: a.physics_limits || '-' },
+    { title: '替代方案威胁', content: a.substitution_threat || '-' },
+    { title: '供需测算偏差', content: a.supply_demand_bias || '-' },
+    { title: '地缘政策风险', content: a.geopolitical_risk || '-' },
+    { title: '产能扩张可行性', content: a.capacity_feasibility || '-' },
+    { title: '需求可持续性', content: a.demand_sustainability || '-' },
+    { title: '估值合理性', content: a.valuation_rationality || '-' },
+  ];
+
+  const risks = Array.isArray(a.risks) && a.risks.length > 0
+    ? `<ul class="risk-list">${a.risks.map(r => `<li class="${r.level === 'medium' ? 'medium' : ''}">${r.text}</li>`).join('')}</ul>`
+    : '<p style="color:var(--muted);">暂无风险信息</p>';
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <h3>分析概要</h3>
+        <span style="font-size:0.75rem;color:var(--muted);">模型: ${a.model_name || '-'} · 版本 v${a.version} · ${new Date(a.created_at).toLocaleString('zh-CN')}</span>
+      </div>
+      <div style="padding:1rem 1.25rem;">
+        ${scoreBar}
+        ${a.score_comment ? `<p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;">${a.score_comment}</p>` : ''}
+        ${a.summary ? `<div style="margin-top:1rem;padding:0.75rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--accent);font-size:0.85rem;line-height:1.7;">${a.summary}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Serenity深度分析报告</h3></div>
+      <div style="padding:1rem 1.25rem;">
+        ${sections.map(s => `<div class="analysis-detail-section"><h4>${s.title}</h4><p>${s.content}</p></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>风险提示</h3></div>
+      <div style="padding:1rem 1.25rem;">${risks}</div>
+    </div>
+  `;
+}
+
+async function triggerSingleStockAnalysis(stockId) {
+  if (!confirm('确定对此股票执行AI分析吗？')) return;
+  try {
+    const result = await api(`/api/ai/analysis/single/${stockId}`, { method: 'POST' });
+    showToast(result.message);
+    // 跳转到AI分析页面查看进度
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('[data-page="ai-analysis"]')?.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-ai-analysis').classList.add('active');
+    loadAIAnalysis();
+  } catch (e) { showToast(e.message, true); }
+}
+
+function viewStockAnalysisHistory(stockId) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('[data-page="ai-history"]')?.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-ai-history').classList.add('active');
+  loadStockAnalysisDetail(stockId);
 }
 
 // Init

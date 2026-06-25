@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """数据库迁移脚本 - 添加邀请码相关表和字段"""
 from __future__ import print_function
 import sqlite3
@@ -156,6 +157,26 @@ def migrate():
         print("✓ stock_analyses.chain_flow 列已添加")
     else:
         print("- stock_analyses.chain_flow 列已存在，跳过")
+
+    # 13. 为 tracked_stocks 添加行情缓存列
+    cursor.execute("PRAGMA table_info(tracked_stocks)")
+    columns = [row[1] for row in cursor.fetchall()]
+    cache_columns = {
+        'last_current_price': 'REAL',
+        'last_change_pct': 'REAL',
+        'return_1w': 'REAL',
+        'return_1m': 'REAL',
+        'return_3m': 'REAL',
+        'return_1y': 'REAL',
+        'last_quote_time': 'DATETIME',
+        'last_quote_date': 'VARCHAR(10)',
+    }
+    for col_name, col_type in cache_columns.items():
+        if col_name not in columns:
+            cursor.execute(f"ALTER TABLE tracked_stocks ADD COLUMN {col_name} {col_type}")
+            print(f"✓ tracked_stocks.{col_name} 列已添加")
+        else:
+            print(f"- tracked_stocks.{col_name} 列已存在，跳过")
 
     conn.commit()
     conn.close()

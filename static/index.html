@@ -746,91 +746,131 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 async function loadDashboard() {
   const container = document.getElementById('page-dashboard');
-  container.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  container.innerHTML = `
+    <div class="page-header">
+      <h2>仪表板</h2>
+      <p>紫苏叶理论 · 七步分析框架 · 对抗性论证</p>
+    </div>
+    <div id="stats-placeholder"><div class="loading"><span class="spinner"></span>加载统计中...</div></div>
+    <div id="quotes-placeholder"><div class="loading"><span class="spinner"></span>加载行情中...</div></div>
+  `;
 
   try {
-    const [stats, quotes] = await Promise.all([api('/api/dashboard'), api('/api/stocks/quotes')]);
-
-    const stockTable = quotes.length > 0 ? `
-      <div class="card">
-        <div class="card-header">
-          <h3>追踪中股票</h3>
-          <button class="btn btn-primary" onclick="refreshDashboard()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            刷新行情
-          </button>
+    const statsPromise = api('/api/dashboard').then(stats => {
+      const statsHtml = `
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">已导入报告</div><div class="stat-value accent">${stats.total_reports}</div></div>
+          <div class="stat-card blue"><div class="stat-label">追踪股票</div><div class="stat-value blue">${stats.active_stocks}</div></div>
+          <div class="stat-card orange"><div class="stat-label">价格记录</div><div class="stat-value orange">${stats.total_price_records}</div></div>
+          <div class="stat-card"><div class="stat-label">平均评分</div><div class="stat-value">${stats.avg_score || '-'}</div></div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加时价格</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
-            <tbody>
-              ${quotes.map(q => `
-                <tr>
-                  <td class="stock-code" onclick="loadStockDetail(${q.id})">${q.code}</td>
-                  <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
-                  <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
-                  <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
-                  <td class="price">${q.added_price ? q.added_price.toFixed(2) : '-'}</td>
-                  <td>
-                    <div class="added-return">
-                      <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
-                      <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
-                    </div>
-                  </td>
-                  <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
-                  <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
-                  <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
-                  <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
-                  <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
-                  <td>
-                    ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    ` : '<div class="empty"><div class="icon">📊</div><p>暂无追踪中的股票</p></div>';
+      `;
+      const placeholder = document.getElementById('stats-placeholder');
+      if (placeholder) placeholder.outerHTML = statsHtml;
+      return stats;
+    });
 
-    const summaryInfo = stats.latest_report && stats.latest_report.summary ? `
-      <div class="card">
-        <div class="card-header"><h3>最新报告摘要</h3></div>
-        <div style="padding:1rem 1.25rem;">
-          <h4 style="color:var(--accent);margin-bottom:0.5rem;">${stats.latest_report.title}</h4>
-          <p style="font-size:0.85rem;color:var(--muted);">${stats.latest_report.date}</p>
-          ${stats.latest_report.summary.metrics ? `
-            <div class="metrics-grid" style="margin-top:1rem;">
-              ${Object.entries(stats.latest_report.summary.metrics).map(([k, v]) => `<div class="metric-box"><div class="value">${v}</div><div class="label">${k}</div></div>`).join('')}
+    const quotesPromise = api('/api/stocks/quotes').then(quotes => {
+      const stockTableHtml = quotes.length > 0 ? `
+        <div class="card" id="stock-table-card">
+          <div class="card-header">
+            <h3>追踪中股票</h3>
+            <div class="card-header-actions">
+              ${quotes[0]?.last_quote_date ? `<span class="quote-info" style="font-size:0.75rem;color:var(--muted);margin-right:0.75rem;">数据更新: ${quotes[0].last_quote_date}</span>` : ''}
+              <button class="btn btn-primary" onclick="refreshDashboard()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                刷新行情
+              </button>
             </div>
-          ` : ''}
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>添加时价格</th><th>添加后收益<br><span style="font-size:0.65rem;font-weight:normal;color:var(--muted);">添加时长</span></th><th>近1周</th><th>近1月</th><th>近3月</th><th>近1年</th><th>评分</th><th>操作</th></tr></thead>
+              <tbody>
+                ${quotes.map(q => `
+                  <tr>
+                    <td class="stock-code" onclick="loadStockDetail(${q.id})">${q.code}</td>
+                    <td onclick="loadStockDetail(${q.id})" style="cursor:pointer;"><strong>${q.name}</strong></td>
+                    <td class="price ${changeClass(q.change_pct)}">${q.current_price ? q.current_price.toFixed(2) : '-'}</td>
+                    <td class="price ${changeClass(q.change_pct)}">${q.change_pct ? changeSign(q.change_pct) + q.change_pct.toFixed(2) + '%' : '-'}</td>
+                    <td class="price">${q.added_price ? q.added_price.toFixed(2) : '-'}</td>
+                    <td>
+                      <div class="added-return">
+                        <div class="added-return-pct ${changeClass(q.added_return_pct)}">${q.added_return_pct !== null && q.added_return_pct !== undefined ? changeSign(q.added_return_pct) + q.added_return_pct.toFixed(2) + '%' : '-'}</div>
+                        <div class="added-days">${q.added_days !== null && q.added_days !== undefined ? q.added_days + '天' : '-'}</div>
+                      </div>
+                    </td>
+                    <td class="price ${changeClass(q.return_1w)}">${q.return_1w !== null && q.return_1w !== undefined ? changeSign(q.return_1w) + q.return_1w.toFixed(2) + '%' : '-'}</td>
+                    <td class="price ${changeClass(q.return_1m)}">${q.return_1m !== null && q.return_1m !== undefined ? changeSign(q.return_1m) + q.return_1m.toFixed(2) + '%' : '-'}</td>
+                    <td class="price ${changeClass(q.return_3m)}">${q.return_3m !== null && q.return_3m !== undefined ? changeSign(q.return_3m) + q.return_3m.toFixed(2) + '%' : '-'}</td>
+                    <td class="price ${changeClass(q.return_1y)}">${q.return_1y !== null && q.return_1y !== undefined ? changeSign(q.return_1y) + q.return_1y.toFixed(2) + '%' : '-'}</td>
+                    <td>${q.score ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill ${q.score >= 7 ? 'high' : q.score >= 5 ? 'mid' : 'low'}" style="width:${(q.score/10)*100}%"></div></div><span class="score-val">${q.score.toFixed(1)}/10</span></div>` : '-'}</td>
+                    <td>
+                      ${canManage() ? `<button class="btn btn-danger btn-sm" onclick="stopTrack(${q.id}, '${q.name}')">停止追踪</button>` : '-'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    ` : '';
+      ` : '<div class="empty" id="stock-empty"><div class="icon">📊</div><p>暂无追踪中的股票</p></div>';
 
-    container.innerHTML = `
-      <div class="page-header">
-        <h2>仪表板</h2>
-        <p>紫苏叶理论 · 七步分析框架 · 对抗性论证</p>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">已导入报告</div><div class="stat-value accent">${stats.total_reports}</div></div>
-        <div class="stat-card blue"><div class="stat-label">追踪股票</div><div class="stat-value blue">${stats.active_stocks}</div></div>
-        <div class="stat-card orange"><div class="stat-label">价格记录</div><div class="stat-value orange">${stats.total_price_records}</div></div>
-        <div class="stat-card"><div class="stat-label">平均评分</div><div class="stat-value">${stats.avg_score || '-'}</div></div>
-      </div>
-      ${stockTable}
-      ${summaryInfo}
-    `;
+      const placeholder = document.getElementById('quotes-placeholder');
+      if (placeholder) placeholder.outerHTML = stockTableHtml;
+      return quotes;
+    });
+
+    const [stats, quotes] = await Promise.all([statsPromise, quotesPromise]);
+
+    if (stats.latest_report && stats.latest_report.summary) {
+      container.insertAdjacentHTML('beforeend', `
+        <div class="card" id="report-summary-card">
+          <div class="card-header"><h3>最新报告摘要</h3></div>
+          <div style="padding:1rem 1.25rem;">
+            <h4 style="color:var(--accent);margin-bottom:0.5rem;">${stats.latest_report.title}</h4>
+            <p style="font-size:0.85rem;color:var(--muted);">${stats.latest_report.date}</p>
+            ${stats.latest_report.summary.metrics ? `
+              <div class="metrics-grid" style="margin-top:1rem;">
+                ${Object.entries(stats.latest_report.summary.metrics).map(([k, v]) => `<div class="metric-box"><div class="value">${v}</div><div class="label">${k}</div></div>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `);
+    }
   } catch (e) {
-    container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+    const hasStats = document.getElementById('stats-placeholder') === null;
+    if (hasStats) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'empty';
+      errDiv.innerHTML = `<div class="icon">⚠️</div><p>部分数据加载失败: ${e.message}</p>`;
+      container.appendChild(errDiv);
+    } else {
+      container.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
+    }
   }
 }
 
 async function refreshDashboard() {
+  const btn = document.querySelector('#stock-table-card .btn-primary');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '刷新中...';
+  }
   showToast('正在刷新行情...');
-  await loadDashboard();
-  showToast('行情已刷新');
+  try {
+    await api('/api/stocks/quotes/refresh', { method: 'POST' });
+    await loadDashboard();
+    showToast('行情已刷新');
+  } catch (e) {
+    showToast('刷新失败: ' + e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> 刷新行情`;
+    }
+  }
 }
 
 async function loadStockDetail(stockId) {

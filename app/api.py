@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from .database import get_db
 from .models import Report, TrackedStock, PriceRecord, User, AIProvider, AnalysisTask, StockAnalysis, InviteCode
 from .parser import parse_report, scan_reports_directory
-from .stock_service import get_stock_realtime_quote, get_multi_stock_quotes, get_multi_history_prices, get_history_price as _get_history_price
+from .stock_service import get_stock_realtime_quote
 from .ai_service import PROVIDER_DEFAULTS, PROVIDER_LABELS, test_provider
 from .serenity_engine import analyze_single_stock
 import logging
@@ -477,6 +477,14 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
         "report_id": stock.report_id,
         "added_at": stock.added_at.isoformat() if stock.added_at else None,
         "added_price": stock.added_price,
+        "current_price": stock.last_current_price,
+        "change_pct": stock.last_change_pct,
+        "return_1w": stock.return_1w,
+        "return_1m": stock.return_1m,
+        "return_3m": stock.return_3m,
+        "return_1y": stock.return_1y,
+        "last_quote_time": stock.last_quote_time.isoformat() if stock.last_quote_time else None,
+        "last_quote_date": stock.last_quote_date,
         "metrics": stock.metrics or {},
         "buy_price_range": stock.buy_price_range,
         "buy_strategy": stock.buy_strategy,
@@ -497,62 +505,43 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
 
 @router.get("/api/stocks/quotes")
 def get_tracked_quotes(db: Session = Depends(get_db)):
+    """返回缓存的股票行情数据（每天10:00定时更新，不调用外部API）"""
     stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
     if not stocks:
         return []
 
-    stock_tuples = [(s.exchange, s.code[2:]) for s in stocks]
-    quotes = get_multi_stock_quotes(stock_tuples)
-
     result = []
     for s in stocks:
-        code = s.code[2:]
-        quote = quotes.get(code, {})
         record = _stock_to_dict(s)
-        record.update(quote)
 
         # 计算添加后收益
         added_price = s.added_price
-        current_price = quote.get("current_price")
+        current_price = s.last_current_price
         if added_price and current_price:
             record["added_return_pct"] = round((current_price - added_price) / added_price * 100, 2)
         else:
             record["added_return_pct"] = None
 
-        # 计算添加时长（天数）
         if s.added_at:
             delta = datetime.now() - s.added_at
             record["added_days"] = delta.days
         else:
             record["added_days"] = None
 
-        # 计算各时间段收益（通过东方财富K线接口获取历史价格）
-        for key, days in [("return_1w", 7), ("return_1m", 30), ("return_3m", 90), ("return_1y", 365)]:
-            old_price = get_history_price_safe(s.exchange, code, days)
-            if old_price and current_price:
-                record[key] = round((current_price - old_price) / old_price * 100, 2)
-            else:
-                record[key] = None
-
-        if quote.get("current_price"):
-            price_record = PriceRecord(
-                stock_id=s.id,
-                current_price=quote.get("current_price"),
-                open_price=quote.get("open_price"),
-                high_price=quote.get("high_price"),
-                low_price=quote.get("low_price"),
-                volume=quote.get("volume"),
-                change_pct=quote.get("change_pct"),
-                turnover=quote.get("turnover"),
-                pe_ratio=quote.get("pe_ratio"),
-                market_cap=str(quote.get("market_cap", "")),
-            )
-            db.add(price_record)
-
         result.append(record)
 
-    db.commit()
     return result
+
+
+@router.post("/api/stocks/quotes/refresh")
+def refresh_tracked_quotes(user: User = Depends(require_admin_or_invited)):
+    """管理员手动触发行情刷新（调用外部API更新缓存）"""
+    from .scheduler import update_stock_quotes
+    try:
+        update_stock_quotes()
+        return {"message": "行情刷新成功"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"行情刷新失败: {e}")
 
 
 @router.get("/api/stocks/{stock_id}/detail")

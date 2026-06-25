@@ -167,6 +167,16 @@ class TrackedStock(Base):
     added_price = Column(Float, nullable=True)
     is_active = Column(Boolean, default=True)
 
+    # 缓存的最新行情数据（每天10点定时更新）
+    last_current_price = Column(Float, nullable=True)
+    last_change_pct = Column(Float, nullable=True)
+    return_1w = Column(Float, nullable=True)
+    return_1m = Column(Float, nullable=True)
+    return_3m = Column(Float, nullable=True)
+    return_1y = Column(Float, nullable=True)
+    last_quote_time = Column(DateTime, nullable=True)
+    last_quote_date = Column(String(10), nullable=True)
+
     metrics = Column(JSON, nullable=True)
     buy_price_range = Column(String(100), nullable=True)
     buy_strategy = Column(String(500), nullable=True)

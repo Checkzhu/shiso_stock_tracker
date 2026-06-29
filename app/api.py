@@ -8,29 +8,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 
+from .config import SOURCE_DIR, REPORTS_DIR
 from .database import get_db
 from .models import Report, TrackedStock, PriceRecord, User, AIProvider, AnalysisTask, StockAnalysis, InviteCode
 from .parser import parse_report, scan_reports_directory
-from .stock_service import get_stock_realtime_quote
+from .stock_service import get_stock_realtime_quote, get_multi_stock_quotes
 from .ai_service import PROVIDER_DEFAULTS, PROVIDER_LABELS, test_provider
 from .serenity_engine import analyze_single_stock
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def get_history_price_safe(exchange: str, code: str, days: int) -> float | None:
-    """安全调用历史K线接口的包装函数"""
-    try:
-        return _get_history_price(exchange, code, days)
-    except Exception as e:
-        logger.debug(f"获取{code}历史价格失败: {e}")
-        return None
-from .config import SOURCE_DIR, REPORTS_DIR
 from .auth import (
     verify_password, create_access_token, get_current_user,
     require_admin_or_invited, require_admin, get_password_hash,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

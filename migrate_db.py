@@ -5,7 +5,7 @@ import sqlite3
 import sys
 import os
 
-DB_PATH = r"d:\workspace\git\ai\shiso_stock_tracker\stock_tracker.db"
+DB_PATH = r"/opt/shiso_stock_tracker/data/stock_tracker.db"
 
 
 def migrate():

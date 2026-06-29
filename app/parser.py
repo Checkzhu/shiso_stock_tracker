@@ -42,12 +42,21 @@ def parse_report(html_content: str, filename: str = "") -> dict:
 
     date = _extract_date(title, filename, soup)
 
-    # 策略1：基于HTML标签解析
+    # 策略1：基于HTML标签解析（兼容多种格式）
     stock_sections = []
-    for i, card in enumerate(soup.find_all("div", class_="stock-card")):
-        section_data = _parse_stock_card_full(card, i)
+
+    # 格式C：section.stock-section（新版20260629风格）
+    for i, section in enumerate(soup.find_all("section", class_="stock-section")):
+        section_data = _parse_stock_section(section, i)
         if section_data:
             stock_sections.append(section_data)
+
+    # 格式A/B：div.stock-card（旧版20260622/20260623风格）
+    if not stock_sections:
+        for i, card in enumerate(soup.find_all("div", class_="stock-card")):
+            section_data = _parse_stock_card_full(card, i)
+            if section_data:
+                stock_sections.append(section_data)
 
     # 策略2：如果标签解析没找到股票，使用纯文本兜底解析
     if len(stock_sections) == 0:
@@ -151,6 +160,245 @@ def _parse_stock_card_full(card: Tag, index: int) -> Optional[dict]:
             total_score=total_score,
             index=index,
         )
+
+
+def _parse_stock_section(section: Tag, index: int) -> Optional[dict]:
+    """解析新版报告格式的股票板块（20260629风格：section.stock-section）
+
+    结构：
+    - section.stock-section > div.stock-header > span.stock-name + span.stock-code
+    - div.score-grid > div.score-card（四维评分）
+    - table.metrics-table（核心指标）
+    - div.trade-box > div.trade-item（交易策略）
+    - div.chain-flow > span.chain-item（产业链）
+    - ul.risk-list > li（风险）
+    - h2/h3/h4 + p（深度分析）
+    """
+    name_el = section.find("span", class_="stock-name") or section.find("div", class_="stock-name")
+    code_el = section.find("span", class_="stock-code") or section.find("div", class_="stock-code")
+    if not name_el or not code_el:
+        return None
+
+    name = name_el.get_text(strip=True)
+    code_text = code_el.get_text(strip=True)
+
+    parsed_code = _parse_stock_code(code_text)
+    if not parsed_code:
+        return None
+
+    stock_code, exchange, full_code, sector = parsed_code
+
+    tags = [t.get_text(strip=True) for t in section.find_all("span", class_="stock-tag")]
+    if tags:
+        sector = " / ".join(tags)
+
+    serenity_scores = {}
+    score_grid = section.find("div", class_="score-grid")
+    if score_grid:
+        serenity_dims = {
+            "刚需性": "necessity",
+            "稀缺性": "scarcity",
+            "冷门性": "unpopularity",
+            "估值空间": "valuation",
+        }
+        for sc in score_grid.find_all("div", class_="score-card"):
+            label_el = sc.find("div", class_="score-label")
+            value_el = sc.find("div", class_="score-value")
+            desc_el = sc.find("div", class_="score-desc")
+            if not label_el or not value_el:
+                continue
+            label_text = label_el.get_text(strip=True)
+            value_text = value_el.get_text(strip=True)
+            m = re.match(r"(\d+)\s*/\s*(\d+)", value_text)
+            score = int(m.group(1)) if m else None
+            level = "high" if score and score >= 7 else ("mid" if score and score >= 4 else "low")
+            key = serenity_dims.get(label_text)
+            if key:
+                serenity_scores[key] = {
+                    "label": label_text,
+                    "score": score,
+                    "score_text": value_text,
+                    "level": level,
+                    "desc": desc_el.get_text(strip=True) if desc_el else "",
+                }
+
+    scores = [v["score"] for v in serenity_scores.values() if v.get("score") is not None]
+    total_score = round(sum(scores) / len(scores), 1) if scores else None
+
+    metrics = {}
+    metrics_table = section.find("table", class_="metrics-table")
+    if metrics_table:
+        for row in metrics_table.find_all("tr")[1:]:
+            cells = row.find_all("td")
+            if len(cells) >= 2:
+                key = cells[0].get_text(strip=True)
+                val = cells[1].get_text(strip=True)
+                if key and val:
+                    metrics[key] = val
+
+    trade = {}
+    trade_box = section.find("div", class_="trade-box")
+    if trade_box:
+        for item in trade_box.find_all("div", class_="trade-item"):
+            classes = item.get("class", [])
+            label_el = item.find("div", class_="trade-label")
+            value_el = item.find("div", class_="trade-value")
+            detail_el = item.find("div", class_="trade-detail")
+            if not label_el or not value_el:
+                continue
+            lbl = label_el.get_text(strip=True)
+            val = value_el.get_text(strip=True)
+            det = detail_el.get_text(strip=True) if detail_el else ""
+            if "trade-buy" in classes or "买入" in lbl:
+                trade["buy_price_range"] = val
+                trade["buy_strategy"] = det
+            elif "卖出" in lbl or "目标" in lbl:
+                trade["target_price"] = val
+                trade["target_desc"] = det
+            elif "止损" in lbl:
+                trade["stop_loss_price"] = val
+            elif "持有" in lbl:
+                trade["holding_period"] = val
+
+    callout = section.find("div", class_="callout-success")
+    if callout:
+        text = callout.get_text(strip=True)
+        m = re.search(r"预计收益率[：:]\s*(\d+[%％][~\-]?\d*[%％]?)", text)
+        if m:
+            trade["expected_return"] = m.group(1)
+
+    chain_flow = []
+    chain_div = section.find("div", class_="chain-flow")
+    if chain_div:
+        for item in chain_div.find_all(["span", "div"], class_=["chain-item", "chain-node"]):
+            t = item.get_text(strip=True)
+            if t and len(t) <= 30:
+                chain_flow.append({
+                    "text": t,
+                    "highlight": "highlight" in item.get("class", []),
+                })
+
+    risks = []
+    risk_list = section.find("ul", class_="risk-list")
+    if risk_list:
+        for li in risk_list.find_all("li"):
+            text = li.get_text(strip=True)
+            if text:
+                classes = li.get("class", [])
+                level = "medium"
+                if "risk-high" in classes:
+                    level = "high"
+                elif "risk-low" in classes:
+                    level = "low"
+                risks.append({"text": text[:300], "level": level})
+
+    depth = {
+        "industry_tech": "",
+        "rise_reasons": {},
+        "irreplaceability": "",
+        "physics_limits": "",
+        "substitution_threat": "",
+        "supply_demand_logic": "",
+        "geo_risk": "",
+        "capacity_feasibility": "",
+        "feasibility_assessment": "",
+        "demand_sustainability": "",
+        "valuation_rationality": "",
+    }
+
+    in_depth = False
+    current_h3 = None
+    current_h4 = None
+    buf = []
+
+    def flush():
+        nonlocal buf
+        text = " ".join(buf).strip()
+        if text and len(text) > 5:
+            if current_h3 and "行业技术关联" in current_h3:
+                depth["industry_tech"] = (depth["industry_tech"] + " " + text).strip()
+            elif current_h4:
+                sub_map = {
+                    "物理极限": "physics_limits",
+                    "替代方案": "substitution_threat",
+                    "供需测算": "supply_demand_logic",
+                    "供需": "supply_demand_logic",
+                    "地缘": "geo_risk",
+                    "政策风险": "geo_risk",
+                    "产能扩张": "capacity_feasibility",
+                    "产能": "capacity_feasibility",
+                    "可行性评估": "feasibility_assessment",
+                    "需求": "demand_sustainability",
+                    "可持续": "demand_sustainability",
+                    "估值": "valuation_rationality",
+                    "合理": "valuation_rationality",
+                }
+                for kw, key in sub_map.items():
+                    if kw in current_h4:
+                        depth[key] = text
+                        break
+                rise_map = {
+                    "基本面": "basic",
+                    "技术面": "technical",
+                    "资金面": "capital",
+                    "政策面": "policy",
+                }
+                if current_h3 and "上涨原因" in current_h3:
+                    for kw, key in rise_map.items():
+                        if kw in current_h4:
+                            depth["rise_reasons"][key] = text
+                            break
+            elif current_h3 and "不可替代" in current_h3:
+                depth["irreplaceability"] = text
+        buf = []
+
+    for el in section.find_all(["h2", "h3", "h4", "p"]):
+        if el.name == "h2":
+            flush()
+            current_h3 = None
+            current_h4 = None
+            t = el.get_text(strip=True)
+            if "深度分析" in t or "Serenity" in t:
+                in_depth = True
+            elif "风险" in t or "总结" in t or "综合" in t:
+                in_depth = False
+        elif el.name == "h3":
+            flush()
+            current_h3 = el.get_text(strip=True).lstrip("一二三四五六七八九十、. ")
+            current_h4 = None
+        elif el.name == "h4":
+            flush()
+            current_h4 = el.get_text(strip=True).lstrip("一二三四五六七八九十、. 0123456789. ")
+        elif el.name == "p" and in_depth:
+            t = el.get_text(" ", strip=True)
+            if t:
+                buf.append(t)
+    flush()
+
+    if not depth["irreplaceability"]:
+        parts = []
+        if depth["physics_limits"]:
+            parts.append("物理层面：" + depth["physics_limits"][:150])
+        if depth["substitution_threat"]:
+            parts.append("替代威胁：" + depth["substitution_threat"][:150])
+        if parts:
+            depth["irreplaceability"] = " ".join(parts)
+
+    return _build_stock_result(
+        name=name,
+        full_code=full_code,
+        stock_code=stock_code,
+        exchange=exchange,
+        sector=sector,
+        metrics=metrics,
+        trade=trade,
+        total_score=total_score,
+        risks=risks,
+        chain_flow=chain_flow,
+        serenity_scores=serenity_scores,
+        depth=depth,
+        index=index,
+    )
 
 
 def _parse_stock_code(code_text: str) -> Optional[tuple]:

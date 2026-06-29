@@ -1,5 +1,6 @@
 """定时任务调度 - 每天10:00更新所有活跃股票的缓存行情"""
 import logging
+import time
 from datetime import datetime, date
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -28,13 +29,15 @@ def update_stock_quotes():
         quotes = get_multi_stock_quotes(stock_tuples)
 
         updated_count = 0
+        failed_count = 0
         for s in stocks:
             code = s.code[2:]
             quote = quotes.get(code, {})
             current_price = quote.get("current_price")
 
             if current_price is None:
-                logger.debug(f"股票 {s.name}({s.code}) 行情获取失败，跳过")
+                logger.warning(f"股票 {s.name}({s.code}) 行情获取失败，跳过")
+                failed_count += 1
                 continue
 
             change_pct = quote.get("change_pct")
@@ -56,6 +59,8 @@ def update_stock_quotes():
                         return_3m = ret
                     elif key == 4:
                         return_1y = ret
+                else:
+                    logger.warning(f"股票 {s.name}({s.code}) 获取{days}天前历史价格失败: old_price={old_price}")
 
             s.last_current_price = current_price
             s.last_change_pct = change_pct
@@ -81,10 +86,52 @@ def update_stock_quotes():
             db.add(price_record)
             updated_count += 1
 
+            time.sleep(0.2)
+
         db.commit()
-        logger.info(f"定时更新完成：共更新 {updated_count}/{len(stocks)} 只股票")
+        logger.info(f"定时更新完成：成功更新 {updated_count}/{len(stocks)} 只股票，失败 {failed_count} 只")
     except Exception as e:
         logger.error(f"定时更新行情失败: {e}", exc_info=True)
+    finally:
+        db.close()
+
+
+def fill_missing_added_prices():
+    """启动时自动填充added_price为空的股票，获取当前行情作为添加价格"""
+    logger.info("检查是否有股票的added_price为空，准备自动填充...")
+    db = SessionLocal()
+    try:
+        stocks = db.query(TrackedStock).filter(
+            TrackedStock.is_active == True,
+            TrackedStock.added_price == None,
+        ).all()
+        if not stocks:
+            logger.info("所有股票的added_price已有值，无需填充")
+            return
+
+        logger.info(f"发现 {len(stocks)} 只股票的added_price为空，正在获取当前行情...")
+        stock_tuples = [(s.exchange, s.code[2:]) for s in stocks]
+        quotes = get_multi_stock_quotes(stock_tuples)
+
+        filled_count = 0
+        for s in stocks:
+            code = s.code[2:]
+            quote = quotes.get(code, {})
+            current_price = quote.get("current_price")
+            if current_price is not None:
+                s.added_price = current_price
+                filled_count += 1
+                logger.info(f"已填充 {s.name}({s.code}) 的added_price: {current_price}")
+            else:
+                logger.warning(f"无法获取 {s.name}({s.code}) 的当前行情，跳过填充")
+
+        if filled_count > 0:
+            db.commit()
+            logger.info(f"added_price填充完成：成功填充 {filled_count}/{len(stocks)} 只股票")
+        else:
+            logger.warning("未能获取任何股票的当前行情，added_price未更新")
+    except Exception as e:
+        logger.error(f"填充added_price失败: {e}", exc_info=True)
     finally:
         db.close()
 

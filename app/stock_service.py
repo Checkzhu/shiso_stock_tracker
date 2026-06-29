@@ -147,21 +147,21 @@ def get_history_price(exchange: str, code: str, days: int) -> float | None:
             return None
 
         # K线格式: "日期,开盘,收盘,最高,最低,成交量,成交额,振幅"
+        # 东方财富返回的K线是降序（最新在前），需要反转为升序
         # 找到日期 <= today - days 的最近一根K线
         target_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
         best = None
-        for line in klines:
+        for line in reversed(klines):
             parts = line.split(",")
             if len(parts) < 3:
                 continue
             kline_date = parts[0]
             if kline_date <= target_date:
                 best = parts
-            else:
                 break
         if not best:
-            # 取最早的
-            best = klines[0].split(",")
+            # 取最早的（反转后最后一根）
+            best = klines[-1].split(",")
         return float(best[2])
     except Exception as e:
         logger.warning(f"获取{code}历史K线失败: {e}")

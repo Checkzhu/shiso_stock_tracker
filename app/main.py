@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database import init_db, SessionLocal
 from app.api import router
 from app.auth import seed_default_admin
-from app.scheduler import start_scheduler, stop_scheduler
+from app.scheduler import start_scheduler, stop_scheduler, fill_missing_added_prices
 import app.models  # 确保所有模型被加载以创建表
 
 app = FastAPI(title="A股选股追踪系统", version="1.1.0")
@@ -38,6 +38,7 @@ def startup():
         seed_default_admin(db)
     finally:
         db.close()
+    fill_missing_added_prices()
     start_scheduler()
 
 

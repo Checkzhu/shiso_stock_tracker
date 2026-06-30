@@ -503,7 +503,7 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
 
 
 @router.get("/api/stocks/quotes")
-def get_tracked_quotes(sort: str = "added_at_desc", db: Session = Depends(get_db)):
+def get_tracked_quotes(sort: str = "score_desc", db: Session = Depends(get_db)):
     """返回缓存的股票行情数据（每天10:00定时更新，不调用外部API）"""
     query = db.query(TrackedStock).filter(TrackedStock.is_active == True)
 

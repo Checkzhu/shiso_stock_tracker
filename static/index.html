@@ -716,7 +716,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 async function loadDashboard() {
   const container = document.getElementById('page-dashboard');
-  const sortParam = localStorage.getItem('dashboard_sort') || 'added_at_desc';
+  const sortParam = localStorage.getItem('dashboard_sort') || 'score_desc';
   container.innerHTML = `
     <div class="page-header">
       <h2>仪表板</h2>
@@ -749,9 +749,9 @@ async function loadDashboard() {
             <div class="card-header-actions">
               ${quotes[0]?.last_quote_date ? `<span class="quote-info" style="font-size:0.75rem;color:var(--muted);margin-right:0.75rem;">数据更新: ${quotes[0].last_quote_date}</span>` : ''}
               <select id="sort-select" class="role-select" onchange="changeSort(this.value)" style="margin-right:0.75rem;">
-                <option value="added_at_desc" ${sortParam === 'added_at_desc' ? 'selected' : ''}>添加时间（新→旧）</option>
                 <option value="score_desc" ${sortParam === 'score_desc' ? 'selected' : ''}>评分（高→低）</option>
                 <option value="score_asc" ${sortParam === 'score_asc' ? 'selected' : ''}>评分（低→高）</option>
+                <option value="added_at_desc" ${sortParam === 'added_at_desc' ? 'selected' : ''}>添加时间（新→旧）</option>
               </select>
               <button class="btn btn-primary" onclick="refreshDashboard()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>

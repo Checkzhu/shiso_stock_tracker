@@ -162,6 +162,8 @@ tr:hover td { background: rgba(0,212,170,0.03); }
 .stock-title-section .stock-meta { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
 .stock-title-section .stock-meta span { font-family: var(--font-mono); }
 
+.back-btn { margin-bottom: 0.75rem; }
+
 .quote-card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
 .quote-main { display: flex; align-items: flex-end; gap: 2rem; }
 .quote-price { font-family: var(--font-mono); font-size: 3rem; font-weight: 700; }
@@ -295,11 +297,14 @@ tr:hover td { background: rgba(0,212,170,0.03); }
   .quote-info { grid-template-columns: repeat(2, 1fr); }
   .trade-box { grid-template-columns: 1fr; }
   .stock-detail-header { flex-direction: column; gap: 1rem; }
+  .stock-detail-header .stock-title-section { display: flex; flex-direction: column; }
+  .back-btn { align-self: flex-start; }
   .page-header h2 { font-size: 1.2rem; }
   .page-header p { font-size: 0.75rem; }
   .quote-price { font-size: 2rem; }
   .login-box { width: 92%; padding: 1.5rem; }
   .card-header { padding: 0.75rem 1rem; }
+  .card-header-actions { flex-wrap: wrap; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .user-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .report-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
@@ -849,6 +854,14 @@ function changeSort(value) {
   loadDashboard();
 }
 
+function goToDashboard() {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelector('[data-page="dashboard"]')?.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-dashboard').classList.add('active');
+  loadDashboard();
+}
+
 async function loadStockDetail(stockId) {
   currentStockId = stockId;
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -991,6 +1004,10 @@ async function loadStockDetail(stockId) {
       <div class="page-header">
         <div class="stock-detail-header">
           <div class="stock-title-section">
+            <button class="btn back-btn" onclick="goToDashboard()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              返回
+            </button>
             <h1>${data.name}</h1>
             <div class="stock-meta"><span>${data.code}</span><span>·</span><span>${data.sector}</span></div>
             ${scoreBar}
@@ -1235,6 +1252,10 @@ async function loadReports() {
 
     container.innerHTML = `
       <div class="page-header">
+        <button class="btn back-btn" onclick="goToDashboard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          返回仪表板
+        </button>
         <h2>报告管理</h2>
         <p>上传和管理选股报告</p>
       </div>
@@ -1339,6 +1360,10 @@ async function loadUsers() {
 
     container.innerHTML = `
       <div class="page-header">
+        <button class="btn back-btn" onclick="goToDashboard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          返回仪表板
+        </button>
         <h2>用户管理</h2>
         <p>管理系统用户、权限和邀请码</p>
       </div>
@@ -1513,6 +1538,10 @@ async function loadAIConfig() {
 
     container.innerHTML = `
       <div class="page-header">
+        <button class="btn back-btn" onclick="goToDashboard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          返回仪表板
+        </button>
         <h2>AI模型配置</h2>
         <p>管理AI分析使用的模型供应商，支持多个供应商自动切换</p>
       </div>
@@ -1803,6 +1832,10 @@ async function loadAIAnalysis() {
 
     container.innerHTML = `
       <div class="page-header">
+        <button class="btn back-btn" onclick="goToDashboard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          返回仪表板
+        </button>
         <h2>AI分析</h2>
         <p>使用Serenity产业链投研方法对追踪股票进行深度分析</p>
       </div>
@@ -1965,6 +1998,10 @@ async function loadAIHistory() {
     if (!Array.isArray(history) || history.length === 0) {
       container.innerHTML = `
         <div class="page-header">
+          <button class="btn back-btn" onclick="goToDashboard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            返回仪表板
+          </button>
           <h2>分析历史</h2>
           <p>查看所有AI分析记录和修改历史</p>
         </div>
@@ -1985,6 +2022,10 @@ async function loadAIHistory() {
 
     container.innerHTML = `
       <div class="page-header">
+        <button class="btn back-btn" onclick="goToDashboard()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          返回仪表板
+        </button>
         <h2>分析历史</h2>
         <p>查看所有AI分析记录和修改历史（共 ${history.length} 条记录）</p>
       </div>

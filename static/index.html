@@ -82,15 +82,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); line-
 .nav-item .nav-text { flex: 1; }
 .sidebar.compact .nav-text { display: none; }
 
-.stock-nav-items { max-height: 200px; overflow-y: auto; }
-.stock-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
-.sidebar.compact .stock-nav-item { padding: 0.5rem 0.75rem; justify-content: center; }
-.stock-nav-item:hover { background: var(--bg3); color: var(--ink); }
-.stock-nav-item.active { color: var(--accent); }
-.stock-nav-item .stock-code { font-family: var(--font-mono); font-size: 0.75rem; }
-.stock-nav-item .stock-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sidebar.compact .stock-name, .sidebar.compact .stock-code { display: none; }
-
 .user-info { padding: 0.75rem 1.25rem; border-top: 1px solid var(--rule); margin-top: auto; display: flex; align-items: center; gap: 0.5rem; }
 .sidebar.compact .user-info { padding: 0.5rem; justify-content: center; }
 .user-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--bg); flex-shrink: 0; }
@@ -125,6 +116,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--ink); line-
 .card { background: var(--bg2); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
 .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
 .card-header h3 { font-size: 0.95rem; font-weight: 600; }
+.card-header-actions { display: flex; align-items: center; gap: 0.5rem; }
 
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; padding: 0.7rem 1rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--rule); background: var(--bg3); }
@@ -486,11 +478,6 @@ tr:hover td { background: rgba(0,212,170,0.03); }
       </div>
     </div>
 
-    <div class="nav-section" id="stock-nav-section" style="display:none;">
-      <div class="nav-section-title">追踪股票</div>
-      <div class="stock-nav-items" id="stock-nav-items"></div>
-    </div>
-
     <div class="user-info">
       <div class="user-avatar" id="user-avatar">?</div>
       <div class="user-details">
@@ -703,34 +690,12 @@ function showApp() {
     adminNav.style.display = currentUser.role === 'admin' ? 'block' : 'none';
   }
 
-  loadSidebarStocks();
   loadDashboard();
-}
-
-async function loadSidebarStocks() {
-  try {
-    const stocks = await api('/api/stocks');
-    const navSection = document.getElementById('stock-nav-section');
-    const navItems = document.getElementById('stock-nav-items');
-
-    if (stocks.length > 0) {
-      navSection.style.display = 'block';
-      navItems.innerHTML = stocks.map(s => `
-        <div class="stock-nav-item" data-stock-id="${s.id}" onclick="loadStockDetail(${s.id})">
-          <span class="stock-code">${s.code}</span>
-          <span class="stock-name">${s.name}</span>
-        </div>
-      `).join('');
-    } else {
-      navSection.style.display = 'none';
-    }
-  } catch (e) { console.error(e); }
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
     item.classList.add('active');
     const page = item.dataset.page;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -746,6 +711,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 async function loadDashboard() {
   const container = document.getElementById('page-dashboard');
+  const sortParam = localStorage.getItem('dashboard_sort') || 'added_at_desc';
   container.innerHTML = `
     <div class="page-header">
       <h2>仪表板</h2>
@@ -770,13 +736,18 @@ async function loadDashboard() {
       return stats;
     });
 
-    const quotesPromise = api('/api/stocks/quotes').then(quotes => {
+    const quotesPromise = api(`/api/stocks/quotes?sort=${sortParam}`).then(quotes => {
       const stockTableHtml = quotes.length > 0 ? `
         <div class="card" id="stock-table-card">
           <div class="card-header">
             <h3>追踪中股票</h3>
             <div class="card-header-actions">
               ${quotes[0]?.last_quote_date ? `<span class="quote-info" style="font-size:0.75rem;color:var(--muted);margin-right:0.75rem;">数据更新: ${quotes[0].last_quote_date}</span>` : ''}
+              <select id="sort-select" class="role-select" onchange="changeSort(this.value)" style="margin-right:0.75rem;">
+                <option value="added_at_desc" ${sortParam === 'added_at_desc' ? 'selected' : ''}>添加时间（新→旧）</option>
+                <option value="score_desc" ${sortParam === 'score_desc' ? 'selected' : ''}>评分（高→低）</option>
+                <option value="score_asc" ${sortParam === 'score_asc' ? 'selected' : ''}>评分（低→高）</option>
+              </select>
               <button class="btn btn-primary" onclick="refreshDashboard()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
                 刷新行情
@@ -873,11 +844,14 @@ async function refreshDashboard() {
   }
 }
 
+function changeSort(value) {
+  localStorage.setItem('dashboard_sort', value);
+  loadDashboard();
+}
+
 async function loadStockDetail(stockId) {
   currentStockId = stockId;
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  document.querySelectorAll('.stock-nav-item').forEach(i => i.classList.remove('active'));
-  document.querySelector(`[data-stock-id="${stockId}"]`)?.classList.add('active');
 
   const container = document.getElementById('page-stock-detail');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1236,7 +1210,6 @@ async function stopTrack(id, name) {
   if (!confirm(`确定停止追踪 ${name} 吗？`)) return;
   await api(`/api/stocks/${id}/deactivate`, { method: 'POST' });
   showToast(`已停止追踪 ${name}`);
-  loadSidebarStocks();
   loadDashboard();
 }
 
@@ -1323,7 +1296,6 @@ async function handleUpload(files) {
     } catch (e) { showToast('上传失败: ' + e.message, true); }
   }
   loadReports();
-  loadSidebarStocks();
   loadDashboard();
 }
 
@@ -1335,7 +1307,6 @@ async function scanSourceDir() {
     if (status) status.innerHTML = '';
     showToast(result.message);
     loadReports();
-    loadSidebarStocks();
     loadDashboard();
   } catch (e) {
     if (status) status.innerHTML = '';
@@ -1348,7 +1319,6 @@ async function deleteReport(id) {
   await api(`/api/reports/${id}`, { method: 'DELETE' });
   showToast('报告已删除');
   loadReports();
-  loadSidebarStocks();
   loadDashboard();
 }
 

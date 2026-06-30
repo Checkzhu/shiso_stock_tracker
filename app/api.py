@@ -453,9 +453,17 @@ def _update_stock_fields(stock, data):
 # ── 股票追踪 ──────────────────────────────────────────────
 
 @router.get("/api/stocks")
-def list_tracked_stocks(db: Session = Depends(get_db)):
-    stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
-    return [_stock_to_dict(s) for s in stocks]
+def list_tracked_stocks(sort: str = "added_at_desc", db: Session = Depends(get_db)):
+    query = db.query(TrackedStock).filter(TrackedStock.is_active == True)
+
+    if sort == "score_desc":
+        query = query.order_by(TrackedStock.score.desc().nullslast())
+    elif sort == "score_asc":
+        query = query.order_by(TrackedStock.score.asc().nullsfirst())
+    else:
+        query = query.order_by(TrackedStock.added_at.desc())
+
+    return [_stock_to_dict(s) for s in query.all()]
 
 
 def _stock_to_dict(stock: TrackedStock) -> dict:
@@ -495,9 +503,18 @@ def _stock_to_dict(stock: TrackedStock) -> dict:
 
 
 @router.get("/api/stocks/quotes")
-def get_tracked_quotes(db: Session = Depends(get_db)):
+def get_tracked_quotes(sort: str = "added_at_desc", db: Session = Depends(get_db)):
     """返回缓存的股票行情数据（每天10:00定时更新，不调用外部API）"""
-    stocks = db.query(TrackedStock).filter(TrackedStock.is_active == True).all()
+    query = db.query(TrackedStock).filter(TrackedStock.is_active == True)
+
+    if sort == "score_desc":
+        query = query.order_by(TrackedStock.score.desc().nullslast())
+    elif sort == "score_asc":
+        query = query.order_by(TrackedStock.score.asc().nullsfirst())
+    else:
+        query = query.order_by(TrackedStock.added_at.desc())
+
+    stocks = query.all()
     if not stocks:
         return []
 
